@@ -1,21 +1,108 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
+
 package quiz_client;
 
-/**
- *
- * @author Pera
- */
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JRadioButton;
+import javax.swing.JTextArea;
+
+
 public class Quiz_Client extends javax.swing.JFrame {
 
-    /**
-     * Creates new form Quiz_Client
-     */
+    private Socket socket;
+    private BufferedReader br;
+    private PrintWriter pw;
+    private RecieveMessageFromServer rmfs;
+    
     public Quiz_Client() {
         initComponents();
     }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
+    }
+
+    public BufferedReader getBr() {
+        return br;
+    }
+
+    public void setBr(BufferedReader br) {
+        this.br = br;
+    }
+
+    public PrintWriter getPw() {
+        return pw;
+    }
+
+    public void setPw(PrintWriter pw) {
+        this.pw = pw;
+    }
+
+    public JButton getEnterButton() {
+        return updatePlayersButton;
+    }
+
+    public JComboBox<String> getAllPlayers() {
+        return allPlayers;
+    }
+
+    public JRadioButton getAnswerA() {
+        return answerA;
+    }
+
+    public JRadioButton getAnswerB() {
+        return answerB;
+    }
+
+    public JRadioButton getAnswerC() {
+        return answerC;
+    }
+
+    public JRadioButton getAnswerD() {
+        return answerD;
+    }
+
+    public JComboBox<String> getQuestionSet() {
+        return questionSet;
+    }
+
+    public JButton getHelp5050() {
+        return help5050;
+    }
+
+    public JButton getHelpFriend() {
+        return helpFriend;
+    }
+
+    public JButton getHelpSwap() {
+        return helpSwap;
+    }
+
+    public JButton getAddPlayer() {
+        return addPlayer;
+    }
+
+    public JTextArea getAddRemovePlayerArea() {
+        return addRemovePlayerArea;
+    }
+
+    public JButton getRemovePlayer() {
+        return removePlayer;
+    }
+    
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -28,7 +115,7 @@ public class Quiz_Client extends javax.swing.JFrame {
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         buttonGroup2 = new javax.swing.ButtonGroup();
-        loginButton = new javax.swing.JButton();
+        checkButton = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         questionArea = new javax.swing.JTextArea();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -40,36 +127,48 @@ public class Quiz_Client extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox<>();
+        questionSet = new javax.swing.JComboBox<>();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
         jLabel6 = new javax.swing.JLabel();
-        submitAnswer = new javax.swing.JButton();
+        answerA = new javax.swing.JRadioButton();
+        answerB = new javax.swing.JRadioButton();
+        answerC = new javax.swing.JRadioButton();
+        answerD = new javax.swing.JRadioButton();
+        updatePlayersButton = new javax.swing.JButton();
+        leaderboardButton = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
+        addPlayer = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        addRemovePlayerArea = new javax.swing.JTextArea();
+        removePlayer = new javax.swing.JButton();
+        startButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        loginButton.setText("Login");
-        loginButton.addActionListener(new java.awt.event.ActionListener() {
+        checkButton.setText("Check");
+        checkButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                loginButtonActionPerformed(evt);
+                checkButtonActionPerformed(evt);
             }
         });
 
         questionArea.setColumns(20);
         questionArea.setRows(5);
+        questionArea.setEnabled(false);
         jScrollPane2.setViewportView(questionArea);
 
         loginArea.setColumns(20);
         loginArea.setRows(5);
         jScrollPane3.setViewportView(loginArea);
 
-        allPlayers.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        allPlayers.setEnabled(false);
 
         helpFriend.setText("Friend");
+        helpFriend.setEnabled(false);
 
         help5050.setText("50/50");
+        help5050.setEnabled(false);
         help5050.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 help5050ActionPerformed(evt);
@@ -77,6 +176,7 @@ public class Quiz_Client extends javax.swing.JFrame {
         });
 
         helpSwap.setText("Swap Q");
+        helpSwap.setEnabled(false);
 
         jLabel1.setText("Help Options");
 
@@ -84,43 +184,79 @@ public class Quiz_Client extends javax.swing.JFrame {
 
         jLabel3.setText("username:password:role");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        questionSet.setEnabled(false);
+        questionSet.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                questionSetItemStateChanged(evt);
+            }
+        });
+        questionSet.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                questionSetActionPerformed(evt);
+            }
+        });
 
         jLabel4.setText("Question Set");
 
         jLabel5.setText("Questions");
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        jLabel6.setText("Choose your answer");
 
-        jLabel6.setText("Answer");
+        buttonGroup1.add(answerA);
+        answerA.setText("Answer A");
+        answerA.setEnabled(false);
+        answerA.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                answerAActionPerformed(evt);
+            }
+        });
 
-        submitAnswer.setText("Submit");
+        buttonGroup1.add(answerB);
+        answerB.setText("Answer B");
+        answerB.setEnabled(false);
+
+        buttonGroup1.add(answerC);
+        answerC.setText("Answer C");
+        answerC.setEnabled(false);
+
+        buttonGroup1.add(answerD);
+        answerD.setText("Answer D");
+        answerD.setEnabled(false);
+
+        updatePlayersButton.setText("Update Players");
+        updatePlayersButton.setEnabled(false);
+        updatePlayersButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updatePlayersButtonActionPerformed(evt);
+            }
+        });
+
+        leaderboardButton.setText("Leaderboard");
+        leaderboardButton.setEnabled(false);
+        leaderboardButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                leaderboardButtonActionPerformed(evt);
+            }
+        });
+
+        addPlayer.setText("Add");
+        addPlayer.setEnabled(false);
+
+        addRemovePlayerArea.setColumns(20);
+        addRemovePlayerArea.setRows(5);
+        addRemovePlayerArea.setEnabled(false);
+        jScrollPane1.setViewportView(addRemovePlayerArea);
+
+        removePlayer.setText("Remove");
+        removePlayer.setEnabled(false);
+
+        startButton.setText("Start Quiz");
+        startButton.setEnabled(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(helpFriend))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addGap(33, 33, 33)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(loginButton)
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 262, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(helpSwap, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(help5050, javax.swing.GroupLayout.Alignment.TRAILING))))
-                .addGap(38, 38, 38))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGap(14, 14, 14)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -128,18 +264,54 @@ public class Quiz_Client extends javax.swing.JFrame {
                     .addComponent(allPlayers, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(questionSet, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 269, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(answerD, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(answerC, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(answerB, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(answerA, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 292, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(submitAnswer))
-                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(26, 26, 26))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(leaderboardButton))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addGap(33, 33, 33)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(helpSwap, javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(help5050, javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(helpFriend, javax.swing.GroupLayout.Alignment.TRAILING)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(checkButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(updatePlayersButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(startButton)
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addComponent(addPlayer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(removePlayer, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel7)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 72, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                .addGap(38, 38, 38))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -154,16 +326,33 @@ public class Quiz_Client extends javax.swing.JFrame {
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 179, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(allPlayers, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(questionSet, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel6)
-                .addGap(5, 5, 5)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(submitAnswer, javax.swing.GroupLayout.DEFAULT_SIZE, 30, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 133, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(answerA))
+                    .addComponent(leaderboardButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(answerB)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(answerC)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(answerD)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 22, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(addPlayer)
+                    .addComponent(removePlayer))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(22, 22, 22)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel7)
+                            .addComponent(jLabel1))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(helpFriend)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -174,20 +363,63 @@ public class Quiz_Client extends javax.swing.JFrame {
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(helpSwap))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(loginButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(checkButton)
+                    .addComponent(updatePlayersButton)
+                    .addComponent(startButton))
                 .addGap(18, 18, 18))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void loginButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginButtonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_loginButtonActionPerformed
+    public JTextArea getLoginArea() {
+        return loginArea;
+    }
+
+    // Try to remove update players by somehow automaticly updating player list in this function
+    private void checkButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkButtonActionPerformed
+        try {
+            this.socket = new Socket("127.0.0.1", 6001);
+            this.br = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+            this.pw = new PrintWriter(new OutputStreamWriter(this.socket.getOutputStream()), true);
+            this.rmfs = new RecieveMessageFromServer(this);
+            Thread thr = new Thread(rmfs);
+            thr.start();
+            String login_info = this.getLoginArea().getText();
+            this.pw.println(login_info);
+            this.checkButton.setEnabled(false);
+        } catch (IOException ex) {
+            Logger.getLogger(Quiz_Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }//GEN-LAST:event_checkButtonActionPerformed
 
     private void help5050ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_help5050ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_help5050ActionPerformed
+
+    private void answerAActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_answerAActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_answerAActionPerformed
+
+    private void updatePlayersButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updatePlayersButtonActionPerformed
+        String start_indicator = "Update";
+        this.pw.println(start_indicator);
+      
+    }//GEN-LAST:event_updatePlayersButtonActionPerformed
+
+    private void leaderboardButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_leaderboardButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_leaderboardButtonActionPerformed
+
+    private void questionSetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_questionSetActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_questionSetActionPerformed
+
+    private void questionSetItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_questionSetItemStateChanged
+        // TODO add your handling code here:
+    }//GEN-LAST:event_questionSetItemStateChanged
 
     /**
      * @param args the command line arguments
@@ -225,26 +457,35 @@ public class Quiz_Client extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addPlayer;
+    private javax.swing.JTextArea addRemovePlayerArea;
     private javax.swing.JComboBox<String> allPlayers;
+    private javax.swing.JRadioButton answerA;
+    private javax.swing.JRadioButton answerB;
+    private javax.swing.JRadioButton answerC;
+    private javax.swing.JRadioButton answerD;
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
+    private javax.swing.JButton checkButton;
     private javax.swing.JButton help5050;
     private javax.swing.JButton helpFriend;
     private javax.swing.JButton helpSwap;
-    private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JButton leaderboardButton;
     private javax.swing.JTextArea loginArea;
-    private javax.swing.JButton loginButton;
     private javax.swing.JTextArea questionArea;
-    private javax.swing.JButton submitAnswer;
+    private javax.swing.JComboBox<String> questionSet;
+    private javax.swing.JButton removePlayer;
+    private javax.swing.JButton startButton;
+    private javax.swing.JButton updatePlayersButton;
     // End of variables declaration//GEN-END:variables
 }

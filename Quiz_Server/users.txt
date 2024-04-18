@@ -1,0 +1,3 @@
+Petar:123:admin
+Nikola:123:contestant
+Marta:321:contestant
