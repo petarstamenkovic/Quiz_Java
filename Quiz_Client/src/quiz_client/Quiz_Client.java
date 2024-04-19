@@ -50,9 +50,6 @@ public class Quiz_Client extends javax.swing.JFrame {
         this.pw = pw;
     }
 
-    public JButton getEnterButton() {
-        return updatePlayersButton;
-    }
 
     public JComboBox<String> getAllPlayers() {
         return allPlayers;
@@ -101,9 +98,29 @@ public class Quiz_Client extends javax.swing.JFrame {
     public JButton getRemovePlayer() {
         return removePlayer;
     }
-    
-    
 
+    public JButton getCheckButton() {
+        return checkButton;
+    }
+
+    public JButton getConnectButton() {
+        return connectButton;
+    }
+    
+    public JTextArea getLoginArea() {
+        return loginArea;
+    }
+
+    public JButton getEnterButton() {
+        return enterButton;
+    }
+
+    public JButton getStartButton() {
+        return startButton;
+    }
+
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -135,7 +152,6 @@ public class Quiz_Client extends javax.swing.JFrame {
         answerB = new javax.swing.JRadioButton();
         answerC = new javax.swing.JRadioButton();
         answerD = new javax.swing.JRadioButton();
-        updatePlayersButton = new javax.swing.JButton();
         leaderboardButton = new javax.swing.JButton();
         jLabel7 = new javax.swing.JLabel();
         addPlayer = new javax.swing.JButton();
@@ -143,10 +159,13 @@ public class Quiz_Client extends javax.swing.JFrame {
         addRemovePlayerArea = new javax.swing.JTextArea();
         removePlayer = new javax.swing.JButton();
         startButton = new javax.swing.JButton();
+        enterButton = new javax.swing.JButton();
+        connectButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         checkButton.setText("Check");
+        checkButton.setEnabled(false);
         checkButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 checkButtonActionPerformed(evt);
@@ -160,6 +179,7 @@ public class Quiz_Client extends javax.swing.JFrame {
 
         loginArea.setColumns(20);
         loginArea.setRows(5);
+        loginArea.setEnabled(false);
         jScrollPane3.setViewportView(loginArea);
 
         allPlayers.setEnabled(false);
@@ -223,14 +243,6 @@ public class Quiz_Client extends javax.swing.JFrame {
         answerD.setText("Answer D");
         answerD.setEnabled(false);
 
-        updatePlayersButton.setText("Update Players");
-        updatePlayersButton.setEnabled(false);
-        updatePlayersButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                updatePlayersButtonActionPerformed(evt);
-            }
-        });
-
         leaderboardButton.setText("Leaderboard");
         leaderboardButton.setEnabled(false);
         leaderboardButton.addActionListener(new java.awt.event.ActionListener() {
@@ -252,6 +264,26 @@ public class Quiz_Client extends javax.swing.JFrame {
 
         startButton.setText("Start Quiz");
         startButton.setEnabled(false);
+        startButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                startButtonActionPerformed(evt);
+            }
+        });
+
+        enterButton.setText("Enter");
+        enterButton.setEnabled(false);
+        enterButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                enterButtonActionPerformed(evt);
+            }
+        });
+
+        connectButton.setText("Connect");
+        connectButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                connectButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -266,7 +298,7 @@ public class Quiz_Client extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(questionSet, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 269, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(answerD, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(answerC, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -286,17 +318,24 @@ public class Quiz_Client extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(connectButton))
                                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(helpSwap, javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(help5050, javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(helpFriend, javax.swing.GroupLayout.Alignment.TRAILING)))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 281, Short.MAX_VALUE)
+                                        .addComponent(helpFriend))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(279, 279, 279)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(helpSwap, javax.swing.GroupLayout.Alignment.TRAILING)
+                                            .addComponent(help5050, javax.swing.GroupLayout.Alignment.TRAILING)))))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(checkButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(updatePlayersButton)
+                                .addComponent(enterButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(startButton)
                                 .addGap(0, 0, Short.MAX_VALUE))
@@ -361,38 +400,27 @@ public class Quiz_Client extends javax.swing.JFrame {
                 .addGap(5, 5, 5)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(helpSwap))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(helpSwap)
+                        .addComponent(connectButton)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(checkButton)
-                    .addComponent(updatePlayersButton)
-                    .addComponent(startButton))
+                    .addComponent(startButton)
+                    .addComponent(enterButton))
                 .addGap(18, 18, 18))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    public JTextArea getLoginArea() {
-        return loginArea;
-    }
+
 
     // Try to remove update players by somehow automaticly updating player list in this function
     private void checkButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkButtonActionPerformed
-        try {
-            this.socket = new Socket("127.0.0.1", 6001);
-            this.br = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-            this.pw = new PrintWriter(new OutputStreamWriter(this.socket.getOutputStream()), true);
-            this.rmfs = new RecieveMessageFromServer(this);
-            Thread thr = new Thread(rmfs);
-            thr.start();
-            String login_info = this.getLoginArea().getText();
-            this.pw.println(login_info);
-            this.checkButton.setEnabled(false);
-        } catch (IOException ex) {
-            Logger.getLogger(Quiz_Client.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
+         String login_info = this.getLoginArea().getText();
+         this.pw.println(login_info);
+     
     }//GEN-LAST:event_checkButtonActionPerformed
 
     private void help5050ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_help5050ActionPerformed
@@ -402,12 +430,6 @@ public class Quiz_Client extends javax.swing.JFrame {
     private void answerAActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_answerAActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_answerAActionPerformed
-
-    private void updatePlayersButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updatePlayersButtonActionPerformed
-        String start_indicator = "Update";
-        this.pw.println(start_indicator);
-      
-    }//GEN-LAST:event_updatePlayersButtonActionPerformed
 
     private void leaderboardButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_leaderboardButtonActionPerformed
         // TODO add your handling code here:
@@ -420,6 +442,34 @@ public class Quiz_Client extends javax.swing.JFrame {
     private void questionSetItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_questionSetItemStateChanged
         // TODO add your handling code here:
     }//GEN-LAST:event_questionSetItemStateChanged
+
+    private void enterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterButtonActionPerformed
+       this.pw.println("Enter_update");
+       this.enterButton.setEnabled(false);
+       this.checkButton.setEnabled(false);
+       this.startButton.setEnabled(true);
+    }//GEN-LAST:event_enterButtonActionPerformed
+
+    private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
+        try {
+            this.socket = new Socket("127.0.0.1", 6001);
+            this.br = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+            this.pw = new PrintWriter(new OutputStreamWriter(this.socket.getOutputStream()), true);
+            this.rmfs = new RecieveMessageFromServer(this);
+            Thread thr = new Thread(rmfs);
+            thr.start();
+            this.pw.println("Connect");
+        } catch (IOException ex) {
+            Logger.getLogger(Quiz_Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_connectButtonActionPerformed
+
+    // Fetch the set of questions and begin
+    private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
+        String active_set = (String) this.questionSet.getSelectedItem();
+        System.out.println("Start:" + active_set);
+        this.pw.println("Start:" + active_set);
+    }//GEN-LAST:event_startButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -467,6 +517,8 @@ public class Quiz_Client extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JButton checkButton;
+    private javax.swing.JButton connectButton;
+    private javax.swing.JButton enterButton;
     private javax.swing.JButton help5050;
     private javax.swing.JButton helpFriend;
     private javax.swing.JButton helpSwap;
@@ -486,6 +538,5 @@ public class Quiz_Client extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> questionSet;
     private javax.swing.JButton removePlayer;
     private javax.swing.JButton startButton;
-    private javax.swing.JButton updatePlayersButton;
     // End of variables declaration//GEN-END:variables
 }

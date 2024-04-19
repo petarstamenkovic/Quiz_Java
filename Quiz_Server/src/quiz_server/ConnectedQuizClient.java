@@ -10,8 +10,12 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ConnectedQuizClient implements Runnable{
     
@@ -25,6 +29,7 @@ public class ConnectedQuizClient implements Runnable{
     private String role;
     
     private ArrayList<User> possibleUsers; 
+    private ArrayList<Question> questions;
     // Constructor 
     public ConnectedQuizClient(Socket socket,ArrayList<ConnectedQuizClient> allClients)
     {
@@ -36,8 +41,9 @@ public class ConnectedQuizClient implements Runnable{
             this.username = "";
             this.password = "";
             this.role = "";
-            this.state = "IDLE";
+            this.state = "CONNECT";
             this.possibleUsers = new ArrayList<>();
+            this.questions = new ArrayList<>();
         } catch (IOException ex) {
             Logger.getLogger(ConnectedQuizClient.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -64,6 +70,76 @@ public class ConnectedQuizClient implements Runnable{
         }
     }
     
+    public void readSet(String active_set) throws FileNotFoundException, IOException
+    {
+        String filename = null;
+        switch(active_set)
+        {
+            case "Set 1" : 
+                filename = "./set1.txt";
+                break;
+            
+            case "Set 2" : 
+                filename = "./set2.txt";
+                break;
+            
+            case "Set 3" :
+                filename = "./set3.txt";
+                break;
+                
+            case "Set 4" : 
+                filename = "./set4.txt";
+                break;
+        }
+        
+        File fp = new File(filename);
+        if(fp.exists())
+        {
+            String regexPatternQuestion = "\\d+[.] [a-zA-zćčšđž :]+";
+            Pattern patternQ = Pattern.compile(regexPatternQuestion);
+            String regexPatternAnswerWrong = "\\t[a-c]";
+            Pattern patternAW = Pattern.compile(regexPatternAnswerWrong);
+            String regexPatternAnswerRight = "\\t[d]";
+            Pattern patternAR = Pattern.compile(regexPatternAnswerRight);
+            
+            HashMap<Boolean,String> answers = new HashMap<>();
+            HashMap<Boolean,String> temp_answers;
+            BufferedReader in = new BufferedReader(new FileReader(fp));
+            String currentQuestionText = null;
+            String line;
+            while((line = in.readLine()) != null)
+            {   
+                Matcher matcherQ = patternQ.matcher(line);
+                Matcher matcherAW = patternAW.matcher(line);
+                Matcher matcherAR = patternAR.matcher(line);
+                if(matcherQ.find()) // Found a question
+                {
+                    //answers.clear();
+                    System.out.println("Found a question");
+                    currentQuestionText = line;
+                }
+                else if(matcherAW.find())   // Found a wrong answer ; a,b,c
+                {
+                    System.out.println("Found a wrong answer");
+                    answers.put(false,line);
+                }
+                else if(matcherAR.find())   // Found a right answer ; d
+                {
+                    System.out.println("Found a right answer");
+                    answers.put(true,line);
+                    temp_answers = new HashMap(answers);
+                    Question currentQuestion = new Question(currentQuestionText,temp_answers);
+                    this.questions.add(currentQuestion);
+                    answers.clear();
+                }
+            }     
+        }
+        else 
+        {
+            System.out.println("File not found");
+        }
+    }
+    
     // Read from user files here
     @Override
     public void run()
@@ -79,9 +155,20 @@ public class ConnectedQuizClient implements Runnable{
  
                 switch(this.state)
                 {
-                    case "IDLE" :
+                    case "CONNECT" :
+                        String connect_flag = br.readLine();
+                        if(connect_flag.startsWith("Connect"))
+                        {
+                            this.pw.println("Success");
+                            this.state = "LOGIN";
+                        }
+                        break;
+                        
+                        
+                    case "LOGIN" :
                         try {
                             String login_info = br.readLine();
+                            System.out.println(login_info);
                             String [] login_token = login_info.split(":");
                             this.username = login_token[0];
                             this.password = login_token[1];
@@ -95,15 +182,16 @@ public class ConnectedQuizClient implements Runnable{
                                     System.out.println("You found the match");
                                     String message = "Login ok:" + this.username + ":" + this.role;
                                     this.pw.println(message);
-                                    this.state = "LOGGED_IN";
-                                    allClients.add(this);       // Here I add people in allCLintes, why does it double them?
+                                    this.state = "CHECK_OK";
+                                    //allClients.add(this);       // Here I add people in allCLintes, why does it double them?
                                     break;
                                 }
                             }
                             if(match == 0)
                             {
-                                this.pw.println("Login failed");
-                                this.state = "IDLE";
+                                this.pw.println("Failed login");
+                                System.out.println("Failed login");
+                                this.state = "LOGIN";
                             }
                         } catch (IOException ex) {
                             Logger.getLogger(ConnectedQuizClient.class.getName()).log(Level.SEVERE, null, ex);
@@ -111,38 +199,39 @@ public class ConnectedQuizClient implements Runnable{
                         break;
                         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                         
-                    case "LOGGED_IN" :
-                        String start_indicator = br.readLine();
+                    case "CHECK_OK" :
+                        String enter_update = br.readLine();
                         int num_users = this.allClients.size();
                         String all_users = "Users:"+num_users+":";
                         
-                        if(start_indicator.equals("Update"))
+                        if(enter_update.equals("Enter_update"))
                         {
                             for(ConnectedQuizClient clnt : this.allClients)
                             {
                                 all_users+=clnt.username+",";
                             }
                             
-                            this.pw.println(all_users);
-                            //this.state = "START_QUIZ";
+                            for(ConnectedQuizClient clnt : this.allClients)
+                            {
+                                clnt.pw.println(all_users);
+                            }
+                            this.state = "START_QUIZ";
                         }
-                        
-                        
                         break;
                         
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
-                        
+                    case "START_QUIZ" :
+                        String start_flag = br.readLine(); 
+                        System.out.println(start_flag);
+                        if(start_flag.startsWith("Start:"))
+                        {
+                            String [] active_set_fetch = start_flag.split(":");
+                            String active_set = active_set_fetch[1];
+                            System.out.println(active_set);
+                            readSet(active_set);
+                            System.out.println(questions);
+                        }
+                        break;
+                                 
                 }
                 
             } catch (IOException ex) {

@@ -28,14 +28,21 @@ public class RecieveMessageFromServer implements Runnable {
                 line = this.br.readLine();
                 System.out.println(line);  
                 
-                if(line.startsWith("Login"))
+                // IF block that connects a player to a game
+                if(line.startsWith("Success"))
                 {
-                    if(!"Login failed".equals(line))        // Login success block - Try to upadate combo box here
-                    {
+                    parent.getCheckButton().setEnabled(true);
+                    parent.getConnectButton().setEnabled(false);
+                    parent.getLoginArea().setEnabled(true);
+                }
+                
+                // IF block that checks players credidentials
+                if(line.startsWith("Login ok:"))
+                {
                         parent.getEnterButton().setEnabled(true);
+                        parent.getCheckButton().setEnabled(false);
                         String [] check_role = line.split(":");
-                        parent.getAllPlayers().addItem(check_role[1]);  // This is potentially issue with double listing!
-                        if(check_role[2].equals("admin"))
+                        if(check_role[2].equals("admin"))                    // Log in admin
                         {
                             parent.getAllPlayers().setEnabled(true);
                             parent.getQuestionSet().setEnabled(true);
@@ -53,9 +60,10 @@ public class RecieveMessageFromServer implements Runnable {
                             parent.getLoginArea().setEnabled(false);
                             parent.getAddRemovePlayerArea().setEnabled(true);
                             parent.getAddPlayer().setEnabled(true);
-                            parent.getRemovePlayer().setEnabled(true);
+                            parent.getRemovePlayer().setEnabled(true); 
+                            parent.getStartButton().setEnabled(true);
                         }
-                        else if (check_role[2].equals("contestant"))
+                        else if (check_role[2].equals("contestant"))        // Log in contestant
                         {
                             parent.getAllPlayers().setEnabled(true);
                             parent.getAnswerA().setEnabled(true);
@@ -66,19 +74,22 @@ public class RecieveMessageFromServer implements Runnable {
                             parent.getHelpFriend().setEnabled(true);
                             parent.getHelpSwap().setEnabled(true);
                             parent.getLoginArea().setEnabled(false);
-                        }
-                    }
+                            parent.getStartButton().setVisible(false);
+                      
+                        }   
                 }
-                // LOGIN_OK STATE
+ 
+                // LOGIN_OK STATE - ENTER_UPDATE
                 if(line.startsWith("Users:"))
                 {   
                     parent.getAllPlayers().removeAllItems();
                     System.out.println(line);
                     String [] token = line.split(":");
+                    int num_users = Integer.parseInt(token[1]);
                     String all_users = token[2];
                     String [] names = all_users.split(",");
-                    int num_users = Integer.parseInt(token[1]);
-                    for(int i = 0 ; i < num_users ; i = i + 2)
+                    
+                    for(int i = 0 ; i < num_users ;i++)
                     {
                         parent.getAllPlayers().addItem(names[i]);
                     }
