@@ -1,23 +1,49 @@
-
 package quiz_server;
 
-import java.util.HashMap;
 
 
 public class Question {
     private String text;
-    private HashMap <Boolean,String> answers;    
+    private Answer answerA;
+    private Answer answerB;
+    private Answer answerC;
+    private Answer answerD;
     
-    public Question(String text,HashMap<Boolean,String> answers)
+    public Question(String text,Answer A,Answer B,Answer C,Answer D)
     {
         this.text = text;
-        this.answers = answers;
+        this.answerA = A;
+        this.answerB = B;
+        this.answerC = C;
+        this.answerD = D;
     }
+
+    public Answer getAnswerA() {
+        return answerA;
+    }
+
+    public Answer getAnswerB() {
+        return answerB;
+    }
+
+    public Answer getAnswerC() {
+        return answerC;
+    }
+
+    public Answer getAnswerD() {
+        return answerD;
+    }
+
+    
+    public String getText() {
+        return text;
+    }    
     
     @Override
     public String toString()
     {
-        return "Text: " + this.text + "Answers: " + answers.toString();
+        return "Text: " + this.text + this.answerA  + this.answerB + this.answerC + this.answerD; 
     }
+    
     
 }

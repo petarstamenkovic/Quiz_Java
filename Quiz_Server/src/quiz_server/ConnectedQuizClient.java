@@ -4,13 +4,16 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,6 +33,7 @@ public class ConnectedQuizClient implements Runnable{
     
     private ArrayList<User> possibleUsers; 
     private ArrayList<Question> questions;
+    private int question_number;
     // Constructor 
     public ConnectedQuizClient(Socket socket,ArrayList<ConnectedQuizClient> allClients)
     {
@@ -97,40 +101,71 @@ public class ConnectedQuizClient implements Runnable{
         {
             String regexPatternQuestion = "\\d+[.] [a-zA-zćčšđž :]+";
             Pattern patternQ = Pattern.compile(regexPatternQuestion);
-            String regexPatternAnswerWrong = "\\t[a-c]";
-            Pattern patternAW = Pattern.compile(regexPatternAnswerWrong);
-            String regexPatternAnswerRight = "\\t[d]";
-            Pattern patternAR = Pattern.compile(regexPatternAnswerRight);
             
-            HashMap<Boolean,String> answers = new HashMap<>();
-            HashMap<Boolean,String> temp_answers;
-            BufferedReader in = new BufferedReader(new FileReader(fp));
+            String regexPatternAnswerA = "\\t[a]";
+            Pattern patternA = Pattern.compile(regexPatternAnswerA);
+            
+            String regexPatternAnswerB = "\\t[b]";
+            Pattern patternB = Pattern.compile(regexPatternAnswerB);
+            
+            String regexPatternAnswerC = "\\t[c]";
+            Pattern patternC = Pattern.compile(regexPatternAnswerC);
+            
+            String regexPatternAnswerD = "\\t[d]";
+            Pattern patternD = Pattern.compile(regexPatternAnswerD);
+            
+            String answerAText = "";
+            String answerBText = "";
+            String answerCText = "";
+            String answerDText;
             String currentQuestionText = null;
+            BufferedReader in = new BufferedReader(new FileReader(fp));
+            
             String line;
+           
             while((line = in.readLine()) != null)
             {   
+                
                 Matcher matcherQ = patternQ.matcher(line);
-                Matcher matcherAW = patternAW.matcher(line);
-                Matcher matcherAR = patternAR.matcher(line);
+                Matcher matcherA = patternA.matcher(line);
+                Matcher matcherB = patternB.matcher(line);
+                Matcher matcherC = patternC.matcher(line);
+                Matcher matcherD = patternD.matcher(line);
+
+                
                 if(matcherQ.find()) // Found a question
                 {
-                    //answers.clear();
                     System.out.println("Found a question");
                     currentQuestionText = line;
                 }
-                else if(matcherAW.find())   // Found a wrong answer ; a,b,c
+                
+                if(matcherA.find()) 
                 {
-                    System.out.println("Found a wrong answer");
-                    answers.put(false,line);
+                    System.out.println("Found a wrong answer a)");
+                    answerAText = line;
+                    //Answer answerA = new Answer(line,false);   
                 }
-                else if(matcherAR.find())   // Found a right answer ; d
+                if(matcherB.find()) 
+                {   
+                    System.out.println("Found a wrong answer b)");
+                    answerBText = line;
+                    //Answer answerB = new Answer(line,false);
+                }
+                if(matcherC.find())
                 {
-                    System.out.println("Found a right answer");
-                    answers.put(true,line);
-                    temp_answers = new HashMap(answers);
-                    Question currentQuestion = new Question(currentQuestionText,temp_answers);
+                    System.out.println("Found a wrong answer c)");
+                    answerCText = line;
+                    //Answer answerC = new Answer(line,false);
+                }
+                if(matcherD.find())
+                {
+                    System.out.println("Found a right answer d)");
+                    Answer answerA = new Answer(answerAText,false);
+                    Answer answerB = new Answer(answerBText,false);
+                    Answer answerC = new Answer(answerCText,false);
+                    Answer answerD = new Answer(line,true);
+                    Question currentQuestion = new Question(currentQuestionText,answerA,answerB,answerC,answerD);
                     this.questions.add(currentQuestion);
-                    answers.clear();
                 }
             }     
         }
@@ -144,6 +179,7 @@ public class ConnectedQuizClient implements Runnable{
     @Override
     public void run()
     {
+        
         try {
             readUsers();
         } catch (IOException ex) {
@@ -151,6 +187,7 @@ public class ConnectedQuizClient implements Runnable{
         }
         while(true)
         {
+            
             try {
  
                 switch(this.state)
@@ -168,31 +205,40 @@ public class ConnectedQuizClient implements Runnable{
                     case "LOGIN" :
                         try {
                             String login_info = br.readLine();
-                            System.out.println(login_info);
-                            String [] login_token = login_info.split(":");
-                            this.username = login_token[0];
-                            this.password = login_token[1];
-                            this.role = login_token[2];
-                            int match = 0;
-                            for(User u : this.possibleUsers)
-                            {
-                                if(u.getUsername().equals(this.username) && u.getPassword().equals(this.password) && u.getRole().equals(this.role))
+                            //String login_regex = "^(?=[a-zA-Z])(?!.*[^a-zA-Z0-9])(?=.*\\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*()-_=+\\\\|\\[{\\]};:'\",<.>/?]).{6,}:(admin|contestant)$";
+                            //Pattern patternLogin = Pattern.compile(login_regex);
+                            //Matcher matcherLogin = patternLogin.matcher(login_info);
+                            //if(matcherLogin.find())
+                            //{
+                                System.out.println(login_info);
+                                String [] login_token = login_info.split(":");
+                                this.username = login_token[0];
+                                this.password = login_token[1];
+                                this.role = login_token[2];
+                                int match = 0;
+                                for(User u : this.possibleUsers)
                                 {
-                                    match = 1;
-                                    System.out.println("You found the match");
-                                    String message = "Login ok:" + this.username + ":" + this.role;
-                                    this.pw.println(message);
-                                    this.state = "CHECK_OK";
-                                    //allClients.add(this);       // Here I add people in allCLintes, why does it double them?
-                                    break;
+                                    if(u.getUsername().equals(this.username) && u.getPassword().equals(this.password) && u.getRole().equals(this.role))
+                                    {
+                                        match = 1;
+                                        System.out.println("You found the match");
+                                        String message = "Login ok:" + this.username + ":" + this.role;
+                                        this.pw.println(message);
+                                        this.state = "CHECK_OK";
+                                        break;
+                                    }
                                 }
-                            }
-                            if(match == 0)
-                            {
-                                this.pw.println("Failed login");
-                                System.out.println("Failed login");
-                                this.state = "LOGIN";
-                            }
+                                if(match == 0)
+                                {
+                                    System.out.println("No match found in db, login failed");
+                                    this.pw.println("Failed login");
+                                    this.state = "LOGIN";
+                                }
+                            //}
+                            //else
+                            //{
+                            //    System.out.println("Wrong login format!");
+                            //}
                         } catch (IOException ex) {
                             Logger.getLogger(ConnectedQuizClient.class.getName()).log(Level.SEVERE, null, ex);
                         }
@@ -219,6 +265,7 @@ public class ConnectedQuizClient implements Runnable{
                         }
                         break;
                         
+                    // State that loads the question set and prepares for a start of a quiz    
                     case "START_QUIZ" :
                         String start_flag = br.readLine(); 
                         System.out.println(start_flag);
@@ -229,9 +276,105 @@ public class ConnectedQuizClient implements Runnable{
                             System.out.println(active_set);
                             readSet(active_set);
                             System.out.println(questions);
+                            this.state = "IN_GAME";
                         }
+                        if(start_flag.startsWith("AddPlayer"))
+                        {
+                            //// Check the validity of a input format - use regex /////
+                            String [] new_player_token = start_flag.split(",");
+                            String new_player_info = new_player_token[1];
+                            File fp = new File("./users.txt");
+                            if(fp.exists())
+                            {
+                                BufferedReader in = new BufferedReader(new FileReader(fp));
+                                String line;
+                                boolean userExists = false;
+                                while((line = in.readLine()) != null)
+                                {   
+                                    if(line.equals(new_player_info))
+                                    {
+                                        userExists = true;
+                                        break;
+                                    }
+                                }
+                                // User doesnt already exist
+                                if(userExists == false)
+                                {
+                                    FileWriter fw = new FileWriter(fp,true);
+                                    fw.write("\n"+new_player_info);
+                                    fw.flush();
+                                }
+                            }
+                            else
+                            {
+                                System.out.println("File not found");
+                            }     
+                        }
+                        // Remove a player
+                        /*
+                        if(start_flag.startsWith("RemovePlayer"))
+                        {
+                            //// Check the validity of a input format - use regex /////
+                            String [] new_player_token = start_flag.split(",");
+                            String new_player_info = new_player_token[1];
+                            File fp = new File("./users.txt");
+                            if(fp.exists())
+                            {
+                                BufferedReader in = new BufferedReader(new FileReader(fp));
+                                String line;                       
+                                while((line = in.readLine()) != null)
+                                {   
+                                    if(line.equals(new_player_info))
+                                    {
+                                      
+                                    }
+                                }
+
+                            }
+                            else
+                            {
+                                System.out.println("File not found");
+                            }     
+                        }
+                        */
+                        
                         break;
                                  
+                    
+                    case "IN_GAME" : 
+                        String new_question = br.readLine();
+                        if(new_question.startsWith("NewQuestion"))
+                        {
+                            String current_question = questions.get(question_number).getText();
+                            ArrayList<Answer> answersToShuffle = new ArrayList<>();
+                            Answer tempA = questions.get(question_number).getAnswerA();
+                            answersToShuffle.add(tempA);
+                            Answer tempB = questions.get(question_number).getAnswerB();
+                            answersToShuffle.add(tempB);
+                            Answer tempC = questions.get(question_number).getAnswerC();
+                            answersToShuffle.add(tempC);
+                            Answer tempD = questions.get(question_number).getAnswerD();
+                            answersToShuffle.add(tempD);
+                            
+                            Collections.shuffle(answersToShuffle);  // This is an ArrayList of shuffled answers
+                            
+                            String answerA = answersToShuffle.get(0).getAnswerText();
+                            String answerB = answersToShuffle.get(1).getAnswerText();
+                            String answerC = answersToShuffle.get(2).getAnswerText();
+                            String answerD = answersToShuffle.get(3).getAnswerText();
+                            
+                            this.pw.println("NewQuestion: " + current_question + answerA + ":" + answerB + ":" + answerC + ":" + answerD);
+                            question_number++;
+                            
+                            // At the end of a set, go back to a state that reads a new set of questions
+                            if(question_number == 10)
+                            {
+                                this.state = "START_QUIZ";
+                            }
+                        }
+                        
+                        
+                        
                 }
                 
             } catch (IOException ex) {

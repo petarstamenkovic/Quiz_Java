@@ -49,6 +49,11 @@
                   <Component id="jScrollPane2" min="-2" pref="292" max="-2" attributes="0"/>
                   <Component id="jLabel5" min="-2" pref="142" max="-2" attributes="0"/>
                   <Component id="jLabel6" alignment="0" min="-2" pref="125" max="-2" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="questionButton" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="submintAnswerButton" min="-2" pref="98" max="-2" attributes="0"/>
+                  </Group>
               </Group>
               <EmptySpace min="-2" pref="26" max="-2" attributes="0"/>
           </Group>
@@ -149,6 +154,8 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="addPlayer" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="removePlayer" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="questionButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="submintAnswerButton" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
@@ -361,6 +368,9 @@
         <Property name="text" type="java.lang.String" value="Add"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="addPlayerActionPerformed"/>
+      </Events>
     </Component>
     <Container class="javax.swing.JScrollPane" name="jScrollPane1">
       <AuxValues>
@@ -383,6 +393,9 @@
         <Property name="text" type="java.lang.String" value="Remove"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="removePlayerActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="startButton">
       <Properties>
@@ -408,6 +421,24 @@
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="connectButtonActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="questionButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Get Question"/>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="questionButtonActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="submintAnswerButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Submit"/>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="submintAnswerButtonActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

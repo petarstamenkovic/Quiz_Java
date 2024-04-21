@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ButtonModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JRadioButton;
@@ -119,6 +120,18 @@ public class Quiz_Client extends javax.swing.JFrame {
         return startButton;
     }
 
+    public JTextArea getQuestionArea() {
+        return questionArea;
+    }
+
+    public JButton getQuestionButton() {
+        return questionButton;
+    }
+
+    public JButton getSubmintAnswerButton() {
+        return submintAnswerButton;
+    }
+
     
     
     /**
@@ -161,6 +174,8 @@ public class Quiz_Client extends javax.swing.JFrame {
         startButton = new javax.swing.JButton();
         enterButton = new javax.swing.JButton();
         connectButton = new javax.swing.JButton();
+        questionButton = new javax.swing.JButton();
+        submintAnswerButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -253,6 +268,11 @@ public class Quiz_Client extends javax.swing.JFrame {
 
         addPlayer.setText("Add");
         addPlayer.setEnabled(false);
+        addPlayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addPlayerActionPerformed(evt);
+            }
+        });
 
         addRemovePlayerArea.setColumns(20);
         addRemovePlayerArea.setRows(5);
@@ -261,6 +281,11 @@ public class Quiz_Client extends javax.swing.JFrame {
 
         removePlayer.setText("Remove");
         removePlayer.setEnabled(false);
+        removePlayer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                removePlayerActionPerformed(evt);
+            }
+        });
 
         startButton.setText("Start Quiz");
         startButton.setEnabled(false);
@@ -285,6 +310,22 @@ public class Quiz_Client extends javax.swing.JFrame {
             }
         });
 
+        questionButton.setText("Get Question");
+        questionButton.setEnabled(false);
+        questionButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                questionButtonActionPerformed(evt);
+            }
+        });
+
+        submintAnswerButton.setText("Submit");
+        submintAnswerButton.setEnabled(false);
+        submintAnswerButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                submintAnswerButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -306,7 +347,11 @@ public class Quiz_Client extends javax.swing.JFrame {
                     .addComponent(answerA, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 292, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(questionButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(submintAnswerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(26, 26, 26))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -382,7 +427,9 @@ public class Quiz_Client extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 22, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(addPlayer)
-                    .addComponent(removePlayer))
+                    .addComponent(removePlayer)
+                    .addComponent(questionButton)
+                    .addComponent(submintAnswerButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -469,7 +516,32 @@ public class Quiz_Client extends javax.swing.JFrame {
         String active_set = (String) this.questionSet.getSelectedItem();
         System.out.println("Start:" + active_set);
         this.pw.println("Start:" + active_set);
+        questionButton.setEnabled(true);
     }//GEN-LAST:event_startButtonActionPerformed
+
+    private void questionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_questionButtonActionPerformed
+        this.pw.println("NewQuestion");
+        this.questionButton.setEnabled(false);
+        this.submintAnswerButton.setEnabled(true);
+    }//GEN-LAST:event_questionButtonActionPerformed
+
+    private void addPlayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPlayerActionPerformed
+        String addPlayer = this.getAddRemovePlayerArea().getText();
+        this.pw.println("AddPlayer"+","+addPlayer);
+    }//GEN-LAST:event_addPlayerActionPerformed
+
+    private void removePlayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removePlayerActionPerformed
+         String removePlayer = this.getAddRemovePlayerArea().getText();
+         this.pw.println("RemovePlayer"+","+removePlayer);
+    }//GEN-LAST:event_removePlayerActionPerformed
+
+    private void submintAnswerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submintAnswerButtonActionPerformed
+        ButtonModel seledectedRadioButton = this.buttonGroup1.getSelection();
+        String selectedButton = seledectedRadioButton.getActionCommand();
+        System.out.println(selectedButton);         // This prints out null for some reason
+        this.questionButton.setEnabled(true);
+        this.submintAnswerButton.setEnabled(false);
+    }//GEN-LAST:event_submintAnswerButtonActionPerformed
 
     /**
      * @param args the command line arguments
@@ -535,8 +607,10 @@ public class Quiz_Client extends javax.swing.JFrame {
     private javax.swing.JButton leaderboardButton;
     private javax.swing.JTextArea loginArea;
     private javax.swing.JTextArea questionArea;
+    private javax.swing.JButton questionButton;
     private javax.swing.JComboBox<String> questionSet;
     private javax.swing.JButton removePlayer;
     private javax.swing.JButton startButton;
+    private javax.swing.JButton submintAnswerButton;
     // End of variables declaration//GEN-END:variables
 }

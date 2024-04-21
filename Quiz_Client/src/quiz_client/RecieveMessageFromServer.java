@@ -31,6 +31,7 @@ public class RecieveMessageFromServer implements Runnable {
                 // IF block that connects a player to a game
                 if(line.startsWith("Success"))
                 {
+                    parent.getStartButton().setVisible(false);
                     parent.getCheckButton().setEnabled(true);
                     parent.getConnectButton().setEnabled(false);
                     parent.getLoginArea().setEnabled(true);
@@ -93,8 +94,28 @@ public class RecieveMessageFromServer implements Runnable {
                     {
                         parent.getAllPlayers().addItem(names[i]);
                     }
+                    parent.getStartButton().setVisible(true);
                     
                 }
+                
+                // Question recieving
+                if(line.startsWith("NewQuestion"))
+                {
+                    String [] question_token = line.split(":");
+                    System.out.println(line);
+                    String question_text = question_token[1];
+                    String answerA = question_token[2];
+                    String answerB = question_token[3];
+                    String answerC = question_token[4];
+                    String answerD = question_token[5];
+                    parent.getQuestionArea().setText("");
+                    parent.getQuestionArea().append(question_text);
+                    parent.getAnswerA().setText(answerA);
+                    parent.getAnswerB().setText(answerB);
+                    parent.getAnswerC().setText(answerC);
+                    parent.getAnswerD().setText(answerD);
+                }
+                
             } catch (IOException ex) {
                 Logger.getLogger(RecieveMessageFromServer.class.getName()).log(Level.SEVERE, null, ex);
             }
