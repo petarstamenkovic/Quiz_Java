@@ -22,7 +22,7 @@
 	c) Volga
 	d) Nil
 
-5. Koje godine je potonuo Titanik?
+5. Koje godine je potonuo Titanik?:
 	a) 1905.
 	b) 1914.
 	c) 1907.
@@ -34,7 +34,7 @@
 	c) Fe
 	d) Au
 
-7. Koliko kontinenata postoji na Zemlji?
+7. Koliko kontinenata postoji na Zemlji?:
 	a) 5
 	b) 6
 	c) 4

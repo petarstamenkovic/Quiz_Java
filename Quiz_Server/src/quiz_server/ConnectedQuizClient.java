@@ -36,6 +36,8 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
     private int question_number;
     private int questions_answered;
     private int right_answeres;
+    private String previousSet;
+    private boolean endOfSet;
     // Constructor 
     public ConnectedQuizClient(Socket socket,ArrayList<ConnectedQuizClient> allClients)
     {
@@ -52,6 +54,8 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
             this.questions = new ArrayList<>();
             this.questions_answered = 0;
             this.right_answeres = 0;
+            this.previousSet = "";
+            this.endOfSet = false;
         } catch (IOException ex) {
             Logger.getLogger(ConnectedQuizClient.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -119,7 +123,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
         File fp = new File(filename);
         if(fp.exists())
         {
-            String regexPatternQuestion = "\\d+[.] [a-zA-zćčšđž :]+";
+            String regexPatternQuestion = "^\\d+[.] [a-zA-Z0-9ŠĆČŽĐćčšđž.? :,\\\"]+[:?]$";
             Pattern patternQ = Pattern.compile(regexPatternQuestion);
             
             String regexPatternAnswerA = "\\t[a]";
@@ -288,7 +292,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                         }
                         break;
                         
-                    // State that loads the question set and prepares for a start of a quiz    
+                    // State that loads the question set and prepares for a start of a quiz - in this state admins can add/remove players 
                     case "START_QUIZ" :
                         String start_flag = br.readLine(); 
                         System.out.println(start_flag);
@@ -297,10 +301,21 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             String [] active_set_fetch = start_flag.split(":");
                             String active_set = active_set_fetch[1];
                             System.out.println(active_set);
-                            readSet(active_set);
-                            this.question_number = 0;
-                            System.out.println(questions);
-                            this.state = "IN_GAME";
+                            if(!this.previousSet.equals(active_set))
+                            {
+                                readSet(active_set);
+                                this.previousSet = active_set;
+                                this.question_number = 0;
+                                System.out.println(questions);
+                                this.pw.println("SetLoaded");
+                                this.state = "IN_GAME";
+                            }
+                            else
+                            {
+                                System.out.println("Same set - Not possible");
+                                this.state = "START_QUIZ";
+                                this.pw.println("SameSetError");
+                            }
                         }
                         if(start_flag.startsWith("AddPlayer"))
                         {
@@ -392,10 +407,19 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             this.questions_answered++;
                             
                             // At the end of a set, go back to a state that reads a new set of questions
-                            if(question_number == 10)
+                            if(question_number == 11)
                             {
-                                this.state = "START_QUIZ";
+                                this.endOfSet = true;
                             }
+                            
+                        }
+                        if(this.endOfSet == true)
+                        {
+                            this.pw.println("EndOfSet");
+                            System.out.println("End of a question set");
+                            this.state = "START_QUIZ";
+                            this.question_number = 0;
+                            this.questions.clear();
                         }
                         if(new_question.startsWith("NewAnswer"))
                         {

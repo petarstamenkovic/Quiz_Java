@@ -49,36 +49,71 @@ public class RecieveMessageFromServer implements Runnable {
                         if(check_role[2].equals("admin"))                    // Log in admin
                         {
                             parent.getAllPlayers().setEnabled(true);
+                            
                             parent.getQuestionSet().setEnabled(true);
+                            parent.getQuestionSet().setVisible(false);
+                            
                             parent.getQuestionSet().addItem("Set 1");
                             parent.getQuestionSet().addItem("Set 2");
                             parent.getQuestionSet().addItem("Set 3");
                             parent.getQuestionSet().addItem("Set 4");
                             parent.getAnswerA().setEnabled(true);
+                            parent.getAnswerA().setVisible(false);
                             parent.getAnswerB().setEnabled(true);
+                            parent.getAnswerB().setVisible(false);
                             parent.getAnswerC().setEnabled(true);
+                            parent.getAnswerC().setVisible(false);
                             parent.getAnswerD().setEnabled(true);
+                            parent.getAnswerD().setVisible(false);
+                            
                             parent.getHelp5050().setEnabled(true);
+                            parent.getHelp5050().setVisible(false);
                             parent.getHelpFriend().setEnabled(true);
+                            parent.getHelpFriend().setVisible(false);
                             parent.getHelpSwap().setEnabled(true);
+                            parent.getHelpSwap().setVisible(false);
                             parent.getLoginArea().setEnabled(false);
+                            
+                            parent.getLeaderboardButton().setVisible(false);
                             parent.getAddRemovePlayerArea().setEnabled(true);
+                            parent.getAddRemovePlayerArea().setVisible(false);
                             parent.getAddPlayer().setEnabled(true);
-                            parent.getRemovePlayer().setEnabled(true); 
+                            parent.getAddPlayer().setVisible(false);
+                            parent.getRemovePlayer().setEnabled(true);
+                            parent.getRemovePlayer().setVisible(false);
                             parent.getStartButton().setEnabled(true);
                         }
                         else if (check_role[2].equals("contestant"))        // Log in contestant
                         {
                             parent.getAllPlayers().setEnabled(true);
+                            parent.getAllPlayers().setVisible(false);
+                            
+                            // Hide answer options until you load the set
                             parent.getAnswerA().setEnabled(true);
+                            parent.getAnswerA().setVisible(false);
                             parent.getAnswerB().setEnabled(true);
+                            parent.getAnswerB().setVisible(false);
                             parent.getAnswerC().setEnabled(true);
+                            parent.getAnswerC().setVisible(false);
                             parent.getAnswerD().setEnabled(true);
+                            parent.getAnswerD().setVisible(false);
+                            
+                            // Hide help buttons until needed
                             parent.getHelp5050().setEnabled(true);
+                            parent.getHelp5050().setVisible(false);
                             parent.getHelpFriend().setEnabled(true);
+                            parent.getHelpFriend().setVisible(false);
                             parent.getHelpSwap().setEnabled(true);
+                            parent.getHelpSwap().setVisible(false);
+                            
+                            parent.getLeaderboardButton().setVisible(false);
                             parent.getLoginArea().setEnabled(false);
                             parent.getStartButton().setVisible(false);
+                            
+                            // Contestant cant use this
+                            parent.getAddRemovePlayerArea().setVisible(false);
+                            parent.getAddPlayer().setVisible(false);
+                            parent.getRemovePlayer().setVisible(false);
                       
                         }   
                 }
@@ -88,10 +123,12 @@ public class RecieveMessageFromServer implements Runnable {
                     JOptionPane.showMessageDialog(null, "Wrong login format!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
  
-                // LOGIN_OK STATE - ENTER_UPDATE
+                // LOGIN_OK STATE - ENTER_UPDATE - HERE IS WHAT HAPPENS WITH GUI AFTER PRESSING ENTER BUTTON
                 if(line.startsWith("Users:"))
                 {   
                     parent.getAllPlayers().removeAllItems();
+                    parent.getQuestionSet().setVisible(true);
+                    
                     System.out.println(line);
                     String [] token = line.split(":");
                     int num_users = Integer.parseInt(token[1]);
@@ -102,10 +139,30 @@ public class RecieveMessageFromServer implements Runnable {
                     {
                         parent.getAllPlayers().addItem(names[i]);
                     }
-                    parent.getStartButton().setVisible(true);
-                    
+                    parent.getStartButton().setVisible(true);   
                 }
                 
+                // If block that doesnt allow a player to pick same set two times in a row
+                if(line.startsWith("SameSet"))
+                {
+                    JOptionPane.showMessageDialog(null, "Can not pick the same set again", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                
+                if(line.startsWith("SetLoaded"))
+                {
+                    parent.getAnswerA().setVisible(true);
+                    parent.getAnswerB().setVisible(true);
+                    parent.getAnswerC().setVisible(true);
+                    parent.getAnswerD().setVisible(true);
+                    parent.getQuestionButton().setVisible(true);
+                    parent.getSubmintAnswerButton().setVisible(true);
+                    parent.getHelp5050().setVisible(true);
+                    parent.getHelpFriend().setVisible(true);
+                    parent.getHelpSwap().setVisible(true);
+                    parent.getLeaderboardButton().setVisible(true);
+                    parent.getQuestionSet().setEnabled(false);
+                    parent.getStartButton().setEnabled(false);
+                }
                 // Question recieving
                 if(line.startsWith("NewQuestion"))
                 {
@@ -131,7 +188,21 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getAnswerC().setText(answerCShrink);
                     parent.getAnswerD().setText(answerDShrink);
                 }
-                
+                if(line.startsWith("EndOfSet"))
+                {
+                    parent.getAnswerA().setEnabled(false);
+                    parent.getAnswerB().setEnabled(false);
+                    parent.getAnswerC().setEnabled(false);
+                    parent.getAnswerD().setEnabled(false);
+                    parent.getQuestionButton().setEnabled(false);
+                    parent.getSubmintAnswerButton().setEnabled(false);
+                    parent.getHelp5050().setEnabled(false);
+                    parent.getHelpFriend().setEnabled(false);
+                    parent.getHelpSwap().setEnabled(false);
+                    parent.getStartButton().setEnabled(true);
+                    parent.getQuestionSet().setEnabled(true);
+                    
+                }
                 if(line.startsWith("NewLeaderboard"))
                 {
                     String [] token = line.split("-");
@@ -139,8 +210,7 @@ public class RecieveMessageFromServer implements Runnable {
                     JTextArea textArea = new JTextArea();
                     textArea.setEditable(false); // Make it non-editable
                     textArea.setText("This is the leaderboard.\n" + playerList);
-                    JOptionPane.showMessageDialog(null, new JScrollPane(textArea), "Leaderboard", JOptionPane.PLAIN_MESSAGE);
-                    
+                    JOptionPane.showMessageDialog(null, new JScrollPane(textArea), "Leaderboard", JOptionPane.PLAIN_MESSAGE);      
                 }
                 
             } catch (IOException ex) {
