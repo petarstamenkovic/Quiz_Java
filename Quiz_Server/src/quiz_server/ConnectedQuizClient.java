@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ConnectedQuizClient implements Runnable{
+public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizClient>{
     
     private Socket socket;
     private BufferedReader br;
@@ -34,6 +34,8 @@ public class ConnectedQuizClient implements Runnable{
     private ArrayList<User> possibleUsers; 
     private ArrayList<Question> questions;
     private int question_number;
+    private int questions_answered;
+    private int right_answeres;
     // Constructor 
     public ConnectedQuizClient(Socket socket,ArrayList<ConnectedQuizClient> allClients)
     {
@@ -48,9 +50,27 @@ public class ConnectedQuizClient implements Runnable{
             this.state = "CONNECT";
             this.possibleUsers = new ArrayList<>();
             this.questions = new ArrayList<>();
+            this.questions_answered = 0;
+            this.right_answeres = 0;
         } catch (IOException ex) {
             Logger.getLogger(ConnectedQuizClient.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    @Override 
+    public String toString()
+    {
+        return "Name: " + this.username + ": " + this.right_answeres + " / " + this.questions_answered + "\n"; 
+    }
+    
+    @Override
+    public int compareTo(ConnectedQuizClient clnt2)
+    {
+        if (this.right_answeres > clnt2.right_answeres) 
+                return -1;
+        else 
+                return 1;
+    
     }
     
     public void readUsers() throws FileNotFoundException, IOException
@@ -205,11 +225,12 @@ public class ConnectedQuizClient implements Runnable{
                     case "LOGIN" :
                         try {
                             String login_info = br.readLine();
-                            //String login_regex = "^(?=[a-zA-Z])(?!.*[^a-zA-Z0-9])(?=.*\\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*()-_=+\\\\|\\[{\\]};:'\",<.>/?]).{6,}:(admin|contestant)$";
-                            //Pattern patternLogin = Pattern.compile(login_regex);
-                            //Matcher matcherLogin = patternLogin.matcher(login_info);
-                            //if(matcherLogin.find())
-                            //{
+                            // Is this regex okay? Lowercase letter issue
+                            String login_regex = "^[a-zA-Z]{1,}[A-Za-z0-9]*:(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@!?=*-_])[A-Za-z0-9!_()?$!]{6,}(:admin|:contestant)?$";
+                            Pattern patternLogin = Pattern.compile(login_regex);
+                            Matcher matcherLogin = patternLogin.matcher(login_info);
+                            if(matcherLogin.find())
+                            {
                                 System.out.println(login_info);
                                 String [] login_token = login_info.split(":");
                                 this.username = login_token[0];
@@ -223,6 +244,7 @@ public class ConnectedQuizClient implements Runnable{
                                         match = 1;
                                         System.out.println("You found the match");
                                         String message = "Login ok:" + this.username + ":" + this.role;
+                                        this.username = u.getUsername();
                                         this.pw.println(message);
                                         this.state = "CHECK_OK";
                                         break;
@@ -234,11 +256,12 @@ public class ConnectedQuizClient implements Runnable{
                                     this.pw.println("Failed login");
                                     this.state = "LOGIN";
                                 }
-                            //}
-                            //else
-                            //{
-                            //    System.out.println("Wrong login format!");
-                            //}
+                            }
+                            else
+                            {
+                                System.out.println("Wrong login format!");
+                                this.pw.println("Fail");
+                            }
                         } catch (IOException ex) {
                             Logger.getLogger(ConnectedQuizClient.class.getName()).log(Level.SEVERE, null, ex);
                         }
@@ -275,6 +298,7 @@ public class ConnectedQuizClient implements Runnable{
                             String active_set = active_set_fetch[1];
                             System.out.println(active_set);
                             readSet(active_set);
+                            this.question_number = 0;
                             System.out.println(questions);
                             this.state = "IN_GAME";
                         }
@@ -365,6 +389,7 @@ public class ConnectedQuizClient implements Runnable{
                             
                             this.pw.println("NewQuestion: " + current_question + answerA + ":" + answerB + ":" + answerC + ":" + answerD);
                             question_number++;
+                            this.questions_answered++;
                             
                             // At the end of a set, go back to a state that reads a new set of questions
                             if(question_number == 10)
@@ -372,8 +397,29 @@ public class ConnectedQuizClient implements Runnable{
                                 this.state = "START_QUIZ";
                             }
                         }
-                        
-                        
+                        if(new_question.startsWith("NewAnswer"))
+                        {
+                            String [] answer_token = new_question.split(":");
+                            String answer_selected = answer_token[1];
+                            String answer_text = answer_token[2];
+                            String real_answer = this.questions.get(question_number-1).getAnswerD().getAnswerText();
+                            if(real_answer.substring(real_answer.indexOf(')')+2).equals(answer_text))
+                            {
+                                this.right_answeres++;
+                                System.out.println("Correct answer");
+                            }
+                            else
+                            {
+                                System.out.println("Wrong answer");
+                            }
+                        }
+                        if(new_question.startsWith("Leaderboard"))
+                        {
+                            Collections.sort(allClients);
+                            System.out.println(allClients);
+                            this.pw.println("NewLeaderboard-"+allClients);
+                        }
+                              
                         
                 }
                 

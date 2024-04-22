@@ -7,8 +7,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.AbstractButton;
 import javax.swing.ButtonModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -132,6 +134,10 @@ public class Quiz_Client extends javax.swing.JFrame {
         return submintAnswerButton;
     }
 
+    public JButton getLeaderboardButton() {
+        return leaderboardButton;
+    }
+
     
     
     /**
@@ -239,6 +245,7 @@ public class Quiz_Client extends javax.swing.JFrame {
 
         buttonGroup1.add(answerA);
         answerA.setText("Answer A");
+        answerA.setActionCommand("Answer_A");
         answerA.setEnabled(false);
         answerA.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -248,14 +255,17 @@ public class Quiz_Client extends javax.swing.JFrame {
 
         buttonGroup1.add(answerB);
         answerB.setText("Answer B");
+        answerB.setActionCommand("Answer_B");
         answerB.setEnabled(false);
 
         buttonGroup1.add(answerC);
         answerC.setText("Answer C");
+        answerC.setActionCommand("Answer_C");
         answerC.setEnabled(false);
 
         buttonGroup1.add(answerD);
         answerD.setText("Answer D");
+        answerD.setActionCommand("Answer_D");
         answerD.setEnabled(false);
 
         leaderboardButton.setText("Leaderboard");
@@ -479,7 +489,7 @@ public class Quiz_Client extends javax.swing.JFrame {
     }//GEN-LAST:event_answerAActionPerformed
 
     private void leaderboardButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_leaderboardButtonActionPerformed
-        // TODO add your handling code here:
+        this.pw.println("Leaderboard");
     }//GEN-LAST:event_leaderboardButtonActionPerformed
 
     private void questionSetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_questionSetActionPerformed
@@ -517,6 +527,8 @@ public class Quiz_Client extends javax.swing.JFrame {
         System.out.println("Start:" + active_set);
         this.pw.println("Start:" + active_set);
         questionButton.setEnabled(true);
+        this.leaderboardButton.setEnabled(true);
+        
     }//GEN-LAST:event_startButtonActionPerformed
 
     private void questionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_questionButtonActionPerformed
@@ -536,9 +548,28 @@ public class Quiz_Client extends javax.swing.JFrame {
     }//GEN-LAST:event_removePlayerActionPerformed
 
     private void submintAnswerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submintAnswerButtonActionPerformed
-        ButtonModel seledectedRadioButton = this.buttonGroup1.getSelection();
-        String selectedButton = seledectedRadioButton.getActionCommand();
-        System.out.println(selectedButton);         // This prints out null for some reason
+        ButtonModel selectedRadioButtonModel = this.buttonGroup1.getSelection();
+        if (selectedRadioButtonModel != null) 
+        {
+            Enumeration<AbstractButton> buttons = buttonGroup1.getElements();
+            while (buttons.hasMoreElements()) {
+                AbstractButton button = buttons.nextElement();
+                if (button.getModel() == selectedRadioButtonModel) {
+                    JRadioButton selectedRadioButton = (JRadioButton) button;
+                    String selectedButton = selectedRadioButton.getActionCommand();
+                    String answer_text = selectedRadioButton.getText();
+                    System.out.println(selectedButton);
+                    System.out.println(answer_text); // Print the text of the selected radio button
+                    this.pw.println("NewAnswer:"+selectedButton+":"+answer_text);
+                    this.buttonGroup1.clearSelection();
+                    break;
+                }
+            }
+        } 
+        else 
+        {
+            System.out.println("No radio button selected");
+        }
         this.questionButton.setEnabled(true);
         this.submintAnswerButton.setEnabled(false);
     }//GEN-LAST:event_submintAnswerButtonActionPerformed

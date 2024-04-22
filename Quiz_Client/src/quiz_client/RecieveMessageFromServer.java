@@ -5,6 +5,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 
 public class RecieveMessageFromServer implements Runnable {
@@ -79,6 +82,11 @@ public class RecieveMessageFromServer implements Runnable {
                       
                         }   
                 }
+                
+                if(line.startsWith("Fail"))
+                {
+                    JOptionPane.showMessageDialog(null, "Wrong login format!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
  
                 // LOGIN_OK STATE - ENTER_UPDATE
                 if(line.startsWith("Users:"))
@@ -105,15 +113,34 @@ public class RecieveMessageFromServer implements Runnable {
                     System.out.println(line);
                     String question_text = question_token[1];
                     String answerA = question_token[2];
+                    String answerAShrink = answerA.substring(answerA.indexOf(')')+2);
+                    
                     String answerB = question_token[3];
+                    String answerBShrink = answerB.substring(answerB.indexOf(')')+2);
+                    
                     String answerC = question_token[4];
+                    String answerCShrink = answerC.substring(answerC.indexOf(')')+2);
+
                     String answerD = question_token[5];
+                    String answerDShrink = answerD.substring(answerD.indexOf(')')+2);
+
                     parent.getQuestionArea().setText("");
                     parent.getQuestionArea().append(question_text);
-                    parent.getAnswerA().setText(answerA);
-                    parent.getAnswerB().setText(answerB);
-                    parent.getAnswerC().setText(answerC);
-                    parent.getAnswerD().setText(answerD);
+                    parent.getAnswerA().setText(answerAShrink);
+                    parent.getAnswerB().setText(answerBShrink);
+                    parent.getAnswerC().setText(answerCShrink);
+                    parent.getAnswerD().setText(answerDShrink);
+                }
+                
+                if(line.startsWith("NewLeaderboard"))
+                {
+                    String [] token = line.split("-");
+                    String playerList = token[1];
+                    JTextArea textArea = new JTextArea();
+                    textArea.setEditable(false); // Make it non-editable
+                    textArea.setText("This is the leaderboard.\n" + playerList);
+                    JOptionPane.showMessageDialog(null, new JScrollPane(textArea), "Leaderboard", JOptionPane.PLAIN_MESSAGE);
+                    
                 }
                 
             } catch (IOException ex) {

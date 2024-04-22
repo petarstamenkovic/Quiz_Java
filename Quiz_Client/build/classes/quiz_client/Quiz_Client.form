@@ -319,6 +319,7 @@
           <ComponentRef name="buttonGroup1"/>
         </Property>
         <Property name="text" type="java.lang.String" value="Answer A"/>
+        <Property name="actionCommand" type="java.lang.String" value="Answer_A"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
       <Events>
@@ -331,6 +332,7 @@
           <ComponentRef name="buttonGroup1"/>
         </Property>
         <Property name="text" type="java.lang.String" value="Answer B"/>
+        <Property name="actionCommand" type="java.lang.String" value="Answer_B"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
@@ -340,6 +342,7 @@
           <ComponentRef name="buttonGroup1"/>
         </Property>
         <Property name="text" type="java.lang.String" value="Answer C"/>
+        <Property name="actionCommand" type="java.lang.String" value="Answer_C"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
@@ -349,6 +352,7 @@
           <ComponentRef name="buttonGroup1"/>
         </Property>
         <Property name="text" type="java.lang.String" value="Answer D"/>
+        <Property name="actionCommand" type="java.lang.String" value="Answer_D"/>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
