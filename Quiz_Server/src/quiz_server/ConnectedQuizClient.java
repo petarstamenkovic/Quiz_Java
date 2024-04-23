@@ -64,7 +64,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
     @Override 
     public String toString()
     {
-        return "Name: " + this.username + ": " + this.right_answeres + " / " + this.questions_answered + "\n"; 
+        return "Name: " + this.username + ": " + this.right_answeres + " / " + this.questions_answered; 
     }
     
     @Override
@@ -249,6 +249,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                                         System.out.println("You found the match");
                                         String message = "Login ok:" + this.username + ":" + this.role;
                                         this.username = u.getUsername();
+                                        this.role = u.getRole();
                                         this.pw.println(message);
                                         this.state = "CHECK_OK";
                                         break;
@@ -294,10 +295,12 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                         
                     // State that loads the question set and prepares for a start of a quiz - in this state admins can add/remove players 
                     case "START_QUIZ" :
+                        System.out.println("Im in state START_QUIZ,just before reading a new set!");
                         String start_flag = br.readLine(); 
                         System.out.println(start_flag);
                         if(start_flag.startsWith("Start:"))
                         {
+                            
                             String [] active_set_fetch = start_flag.split(":");
                             String active_set = active_set_fetch[1];
                             System.out.println(active_set);
@@ -316,6 +319,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                                 this.state = "START_QUIZ";
                                 this.pw.println("SameSetError");
                             }
+                            System.out.println("Question number: " + this.question_number);
                         }
                         if(start_flag.startsWith("AddPlayer"))
                         {
@@ -381,6 +385,8 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                                  
                     
                     case "IN_GAME" : 
+                        //System.out.println("Im in IN_GAME state");
+                        //System.out.println("Question number: " + this.question_number);
                         String new_question = br.readLine();
                         if(new_question.startsWith("NewQuestion"))
                         {
@@ -420,13 +426,16 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             this.state = "START_QUIZ";
                             this.question_number = 0;
                             this.questions.clear();
+                            this.endOfSet = false;
                         }
                         if(new_question.startsWith("NewAnswer"))
                         {
                             String [] answer_token = new_question.split(":");
-                            String answer_selected = answer_token[1];
+                            String question_numRcvd_Sp = answer_token[1].trim();
+                            int question_numRcvd = Integer.parseInt(question_numRcvd_Sp);
+                            //System.out.println(question_numRcvd);
                             String answer_text = answer_token[2];
-                            String real_answer = this.questions.get(question_number-1).getAnswerD().getAnswerText();
+                            String real_answer = this.questions.get(question_numRcvd-1).getAnswerD().getAnswerText();
                             if(real_answer.substring(real_answer.indexOf(')')+2).equals(answer_text))
                             {
                                 this.right_answeres++;
@@ -437,14 +446,90 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                                 System.out.println("Wrong answer");
                             }
                         }
+                        
+                        if(new_question.startsWith("SwapQ"))
+                        {
+                            String swap_question_text = this.questions.get(10).getText();
+                            String swap_A = this.questions.get(10).getAnswerA().getAnswerText();
+                            String swap_B = this.questions.get(10).getAnswerB().getAnswerText();
+                            String swap_C = this.questions.get(10).getAnswerC().getAnswerText();
+                            String swap_D = this.questions.get(10).getAnswerD().getAnswerText();
+                            this.pw.println("SwapQ:"+swap_question_text+swap_A+":"+swap_B+":"+swap_C+":"+swap_D);
+                            this.questions_answered++;
+                        }
+                        if(new_question.startsWith("5050"))
+                        {
+                            String[]token_50 = new_question.split(":");
+                            String questionNum = token_50[1].trim();
+                            int questionNumInt = Integer.parseInt(questionNum);
+                            System.out.println(questionNumInt);
+                            Question currentQ = this.questions.get(questionNumInt-1);
+                            String falseAnswers = "5050";
+                            int cnt = 0;
+                            if(currentQ.getAnswerA().isCorrect() == false)
+                            {
+                                falseAnswers = falseAnswers+":"+currentQ.getAnswerA().getAnswerText();
+                                cnt++;
+                            }
+                            if(currentQ.getAnswerB().isCorrect() == false)
+                            {
+                                falseAnswers = falseAnswers+":"+currentQ.getAnswerB().getAnswerText();
+                                cnt++;
+                            }
+                            if(cnt == 2)
+                            {
+                                this.pw.println(falseAnswers);
+                                cnt = 0;
+                            }
+                            if(currentQ.getAnswerC().isCorrect() == false)
+                            {
+                                falseAnswers = falseAnswers+":"+currentQ.getAnswerC().getAnswerText();
+                                cnt++;
+                            }
+                            if(cnt == 2)
+                            {
+                                this.pw.println(falseAnswers);
+                                cnt = 0;
+                            }                        
+                        }
+                        if(new_question.startsWith("FriendHelp"))
+                        {
+                            String [] friend_token = new_question.split(":");
+                            String whoAsks = friend_token[1];
+                            String whoHelps = friend_token[2];
+                            String questionToAsk = friend_token[3];
+                            for(ConnectedQuizClient clnt : this.allClients)
+                            {
+                                if(clnt.username.equals(whoHelps) && !clnt.username.equals(whoAsks))
+                                {
+                                    clnt.pw.println("Friend:"+whoAsks+":"+questionToAsk);
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if(new_question.startsWith("Response"))
+                        {
+                            String[]responseToken = new_question.split(":");
+                            String whoAsked = responseToken[1].trim();
+                            String responseText = responseToken[2];
+                            for(ConnectedQuizClient clnt : this.allClients)
+                            {
+                                if(clnt.username.equals(whoAsked))
+                                {
+                                    clnt.pw.println("Response:"+responseText);
+                                    break;
+                                }
+                            }
+                        }
+                        
                         if(new_question.startsWith("Leaderboard"))
                         {
                             Collections.sort(allClients);
+                            int size = this.allClients.size();
                             System.out.println(allClients);
-                            this.pw.println("NewLeaderboard-"+allClients);
-                        }
-                              
-                        
+                            this.pw.println("NewLeaderboard-"+size+"-"+allClients);
+                        }               
                 }
                 
             } catch (IOException ex) {
