@@ -3,6 +3,7 @@ package quiz_server;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -10,15 +11,17 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizClient>{
     
@@ -39,6 +42,60 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
     private String previousSet;
     private String activeSet;
     private boolean endOfSet;
+    
+    // Encryption stuff
+    private static final String AES = "AES";
+    private static final String AES_CIPHER_ALGORITHM = "AES/CBC/PKCS5PADDING";
+    
+    // Funkcija koja kreira skriveni kljuc
+    public static SecretKey createAESKey() throws Exception 
+    {
+        SecureRandom securerandom = new SecureRandom();
+        String seed = "RSZEOS2024";
+        securerandom.setSeed(seed.getBytes());
+        //prilikom pravljenja kljuca navodi se koji se algoritam koristi
+        KeyGenerator keygenerator = KeyGenerator.getInstance(AES);
+
+        //duzina kljuca se navodi prilikom pozivanja init funkcije
+        //ovde koristimo duzinu 128 bita (za 256 bita je potrebno instalirati 
+        //dodatne pakete)
+        keygenerator.init(128, securerandom);
+
+        SecretKey key = keygenerator.generateKey();
+
+        return key;
+    }
+    
+    //Funkcija koja prima otvoreni tekst, kljuc i inicijalizacioni vektor i 
+    //generise sifrat (cipher text)
+    public static byte[] do_AESEncryption(String plainText, SecretKey secretKey, byte[] initializationVector) throws Exception{
+        //klasa Cipher se koristi za enkripciju/dekripciju, prilikom kreiranja navodi se koji algoritam se koristi
+        Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
+        
+        //IvParameterSpec se kreira koristeci inicijalizacioni vektor a potreban je za inicijalizaciju cipher objekta
+        IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
+  
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
+  
+        //metoda doFinal nakon sto se inicijalizuje metodom init, vrsi enkripciju otvorenog teksta
+        return cipher.doFinal(plainText.getBytes());
+    }
+    
+     //Funkcija koja prima sifrat (kriptovan tekst), kljuc i inicijalizacioni vektor i vraca dekriptovani tekst
+    //generise sifrat (cipher text)
+    public static String do_AESDecryption(byte[] cipherText, SecretKey secretKey, byte[] initializationVector) throws Exception{
+        Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
+  
+        IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
+  
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
+  
+        //ista metoda doFinal se koriti i za dekripciju
+        byte[] result = cipher.doFinal(cipherText);
+  
+        return new String(result);
+    }
+    
     // Constructor 
     public ConnectedQuizClient(Socket socket,ArrayList<ConnectedQuizClient> allClients)
     {
@@ -280,6 +337,33 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                         int num_users = this.allClients.size();
                         String all_users = "Users:"+num_users+":";
                         
+                        File fps = new File("./playerStats.txt");
+                        if(fps.exists())
+                        {
+                            BufferedReader in = new BufferedReader(new FileReader(fps));
+                            String line;
+
+                            while((line = in.readLine()) != null)
+                            {
+                                String [] backUpToken = line.split(":");
+                                String backUpName = backUpToken[0].trim();
+                                int backUpRight = Integer.parseInt(backUpToken[1]);
+                                int backUpAnswers = Integer.parseInt(backUpToken[2]);
+                                if(this.username.equals(backUpName))
+                                {
+                                    this.right_answeres = this.right_answeres + backUpRight;
+                                    this.questions_answered = this.questions_answered = backUpAnswers;
+                                    System.out.println("BackUp found!");
+                                    break;
+                                }
+                            }
+                        }
+                        else 
+                        {
+                            System.out.println("File not found!");
+                        }
+       
+                        
                         if(enter_update.equals("Enter_update"))
                         {
                             for(ConnectedQuizClient clnt : this.allClients)
@@ -365,14 +449,19 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                         }
                         if(start_flag.startsWith("AddPlayer"))
                         {
+                            byte[] initializationVector = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
                             String [] new_player_token = start_flag.split(",");
-                            String new_player_info = new_player_token[1];
+                            String new_player_info = new_player_token[1]; // This to be encrypted
                             String login_regex = "^[a-zA-Z]{1,}[A-Za-z0-9]*:(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@!?=*-_])[A-Za-z0-9!_()?$!]{6,}(:admin|:contestant)?$";
                             Pattern patternLogin = Pattern.compile(login_regex);
                             Matcher matcherLogin = patternLogin.matcher(new_player_info);
                             if(matcherLogin.find())
                             {
+                                SecretKey symmetricKey = createAESKey();
+                                byte[] cipherText = do_AESEncryption(new_player_info,symmetricKey,initializationVector);   
+                                FileOutputStream fos = new FileOutputStream("./users.txt");
                                 File fp = new File("./users.txt");
+                                
                                 if(fp.exists())
                                 {
                                     BufferedReader in = new BufferedReader(new FileReader(fp));
@@ -390,10 +479,12 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                                     if(userExists == false)
                                     {
                                         this.pw.println("AddOk");
-                                        FileWriter fw = new FileWriter(fp,true);
-                                        fw.write("\n");
-                                        fw.write(new_player_info);
-                                        fw.flush();
+                                        //FileWriter fw = new FileWriter(fp,true);
+                                        //fw.write("\n");
+                                        //fw.write(new_player_info);// here was new_player_info
+                                        //fw.flush();
+                                        fos.write(cipherText);  // Looks okay, investigate it more and add to remove part and login part
+                                        fos.flush();
                                     }
                                     else
                                     {
@@ -405,6 +496,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                                     System.out.println("File not found");
                                    
                                 }
+                                
                             }
                             else
                             {
@@ -664,6 +756,8 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                 }
                 
             } catch (IOException ex) {
+                Logger.getLogger(ConnectedQuizClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
                 Logger.getLogger(ConnectedQuizClient.class.getName()).log(Level.SEVERE, null, ex);
             }
             
