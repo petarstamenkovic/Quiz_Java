@@ -14,6 +14,7 @@ import javax.swing.AbstractButton;
 import javax.swing.ButtonModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
@@ -27,9 +28,11 @@ public class Quiz_Client extends javax.swing.JFrame {
     private BufferedReader br;
     private PrintWriter pw;
     private RecieveMessageFromServer rmfs;
+    private JFrame mainFrame;
     
     public Quiz_Client() {
         initComponents();
+        mainFrame = this;
     }
 
     public Socket getSocket() {
@@ -44,6 +47,10 @@ public class Quiz_Client extends javax.swing.JFrame {
         return br;
     }
 
+    public JFrame getMainFrame() {
+        return mainFrame;
+    }
+    
     public void setBr(BufferedReader br) {
         this.br = br;
     }
@@ -768,7 +775,10 @@ public class Quiz_Client extends javax.swing.JFrame {
     }//GEN-LAST:event_requestSetButtonActionPerformed
 
     private void logOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logOutButtonActionPerformed
-        this.pw.println("LogOut");
+        String logOutInfo = this.loginArea.getText();
+        String [] logOutToken = logOutInfo.split(":");
+        String whoLogsOut = logOutToken[0].trim();
+        this.pw.println("LogOut:" + whoLogsOut);
     }//GEN-LAST:event_logOutButtonActionPerformed
 
     /**

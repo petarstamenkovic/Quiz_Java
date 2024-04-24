@@ -293,6 +293,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             }
                             this.state = "START_QUIZ";
                         }
+                        
                         //// LOG OUT HAS TO BE IN ALL STATES STARTING FROM THIS ONE ////
                         break;
                         
@@ -305,21 +306,27 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                         {
                             String [] tokens = start_flag.split(":");
                             String actSet = tokens[1];
-                            if(!this.previousSet.equals(actSet))
+                            if(!actSet.equals("idle"))
                             {
-                                this.questions.clear();
-                                readSet(actSet);
-                                this.previousSet = actSet;
-                                this.question_number = 0;
-//                                /System.out.println(questions);
-                                this.pw.println("RequestSet");
-                                this.state = "IN_GAME";
+                                if(!this.previousSet.equals(actSet))
+                                {
+                                    this.questions.clear();
+                                    readSet(actSet);
+                                    this.previousSet = actSet;
+                                    this.question_number = 0;
+                                    this.pw.println("RequestSet");
+                                    this.state = "IN_GAME";
+                                }
+                                else
+                                {
+                                    System.out.println("Same set - Not possible");
+                                    this.state = "START_QUIZ";
+                                    this.pw.println("SameSetError");
+                                }
                             }
                             else
                             {
-                                System.out.println("Same set - Not possible");
-                                this.state = "START_QUIZ";
-                                this.pw.println("SameSetError");
+                                this.pw.println("NoSet");
                             }
                             
                         }
@@ -617,6 +624,34 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                                     break;
                                 }
                             }
+                        }
+                        
+                        if(new_question.startsWith("LogOut"))
+                        {
+                            String [] token = new_question.split(":");
+                            String whoLogsOut = token[1].trim();
+                            File fp = new File("./playerStats.txt");
+                            if(fp.exists())
+                            {
+                                String logOutInfo;
+                                logOutInfo = this.username + ":" + this.right_answeres + ":" + this.questions_answered + "\n";                                                     
+                                FileWriter fw = new FileWriter(fp,true);
+                                fw.write(logOutInfo);
+                                fw.flush();
+                                this.pw.println("LogOutOK");
+                            }
+                            else 
+                            {
+                                System.out.println("File not found!");
+                            }
+                            for(ConnectedQuizClient clnt : this.allClients)
+                            {
+                                if(!clnt.username.equals(whoLogsOut))
+                                {
+                                    clnt.pw.println("PlayerOut:" + whoLogsOut);
+                                }
+                            }
+                            
                         }
                         
                         if(new_question.startsWith("Leaderboard"))

@@ -2,6 +2,7 @@
 package quiz_client;
 
 import java.awt.Color;
+import java.awt.Window;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -10,6 +11,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 
 
 public class RecieveMessageFromServer implements Runnable {
@@ -188,7 +190,10 @@ public class RecieveMessageFromServer implements Runnable {
                 {
                     JOptionPane.showMessageDialog(null, "Can not pick the same set again", "Error", JOptionPane.ERROR_MESSAGE);
                 }
-                
+                if(line.startsWith("NoSet"))
+                {
+                    JOptionPane.showMessageDialog(null, "Admin did not select a set!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
                 if(line.startsWith("SetLoaded"))
                 {
                     String [] activeSetToken = line.split(":");
@@ -372,7 +377,25 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getLeaderboardArea().setText("");
                     parent.getLeaderboardArea().setText(messageToDisplay);
                 }
-                 
+                if(line.startsWith("LogOutOK"))
+                {
+                    parent.getLogOutButton().setEnabled(false);
+                    parent.getMainFrame().dispose();
+                }
+                if(line.startsWith("PlayerOut"))
+                {
+                    String [] removeToken = line.split(":");
+                    String removePlayer = removeToken[1];
+                    for(int i = 0 ; i < parent.getAllPlayers().getItemCount() ; i++)
+                    {
+                        String playerIn = parent.getAllPlayers().getItemAt(i);
+                        if(removePlayer.equals(playerIn))
+                        {
+                            parent.getAllPlayers().removeItemAt(i);
+                            break;
+                        }
+                    }
+                }
             } catch (IOException ex) {
                 Logger.getLogger(RecieveMessageFromServer.class.getName()).log(Level.SEVERE, null, ex);
             }
