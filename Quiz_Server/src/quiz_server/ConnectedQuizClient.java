@@ -37,6 +37,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
     private int questions_answered;
     private int right_answeres;
     private String previousSet;
+    private String activeSet;
     private boolean endOfSet;
     // Constructor 
     public ConnectedQuizClient(Socket socket,ArrayList<ConnectedQuizClient> allClients)
@@ -55,6 +56,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
             this.questions_answered = 0;
             this.right_answeres = 0;
             this.previousSet = "";
+            this.activeSet = "";
             this.endOfSet = false;
         } catch (IOException ex) {
             Logger.getLogger(ConnectedQuizClient.class.getName()).log(Level.SEVERE, null, ex);
@@ -291,6 +293,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             }
                             this.state = "START_QUIZ";
                         }
+                        //// LOG OUT HAS TO BE IN ALL STATES STARTING FROM THIS ONE ////
                         break;
                         
                     // State that loads the question set and prepares for a start of a quiz - in this state admins can add/remove players 
@@ -298,6 +301,35 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                         System.out.println("Im in state START_QUIZ,just before reading a new set!");
                         String start_flag = br.readLine(); 
                         System.out.println(start_flag);
+                        if(start_flag.startsWith("RequestSet"))
+                        {
+                            String [] tokens = start_flag.split(":");
+                            String actSet = tokens[1];
+                            if(!this.previousSet.equals(actSet))
+                            {
+                                this.questions.clear();
+                                readSet(actSet);
+                                this.previousSet = actSet;
+                                this.question_number = 0;
+//                                /System.out.println(questions);
+                                this.pw.println("RequestSet");
+                                this.state = "IN_GAME";
+                            }
+                            else
+                            {
+                                System.out.println("Same set - Not possible");
+                                this.state = "START_QUIZ";
+                                this.pw.println("SameSetError");
+                            }
+                            
+                        }
+                        if(start_flag.startsWith("Leaderboard"))
+                        {
+                            Collections.sort(allClients);
+                            int size = this.allClients.size();
+                            System.out.println(allClients);
+                            this.pw.println("NewLeaderboard-"+size+"-"+allClients);
+                        } 
                         if(start_flag.startsWith("Start:"))
                         {
                             
@@ -310,7 +342,10 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                                 this.previousSet = active_set;
                                 this.question_number = 0;
                                 System.out.println(questions);
-                                this.pw.println("SetLoaded");
+                                for(ConnectedQuizClient clnt : this.allClients)
+                                {
+                                    clnt.pw.println("SetLoaded:"+active_set);
+                                }
                                 this.state = "IN_GAME";
                             }
                             else
@@ -323,71 +358,132 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                         }
                         if(start_flag.startsWith("AddPlayer"))
                         {
-                            //// Check the validity of a input format - use regex /////
                             String [] new_player_token = start_flag.split(",");
                             String new_player_info = new_player_token[1];
-                            File fp = new File("./users.txt");
-                            if(fp.exists())
+                            String login_regex = "^[a-zA-Z]{1,}[A-Za-z0-9]*:(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@!?=*-_])[A-Za-z0-9!_()?$!]{6,}(:admin|:contestant)?$";
+                            Pattern patternLogin = Pattern.compile(login_regex);
+                            Matcher matcherLogin = patternLogin.matcher(new_player_info);
+                            if(matcherLogin.find())
                             {
-                                BufferedReader in = new BufferedReader(new FileReader(fp));
-                                String line;
-                                boolean userExists = false;
-                                while((line = in.readLine()) != null)
-                                {   
-                                    if(line.equals(new_player_info))
+                                File fp = new File("./users.txt");
+                                if(fp.exists())
+                                {
+                                    BufferedReader in = new BufferedReader(new FileReader(fp));
+                                    String line;
+                                    boolean userExists = false;
+                                    while((line = in.readLine()) != null)
+                                    {   
+                                        if(line.equals(new_player_info))
+                                        {
+                                            userExists = true;
+                                            break;
+                                        }
+                                    }
+                                    // User doesnt already exist
+                                    if(userExists == false)
                                     {
-                                        userExists = true;
-                                        break;
+                                        this.pw.println("AddOk");
+                                        FileWriter fw = new FileWriter(fp,true);
+                                        fw.write("\n");
+                                        fw.write(new_player_info);
+                                        fw.flush();
+                                    }
+                                    else
+                                    {
+                                        System.out.println("User already exists!");
                                     }
                                 }
-                                // User doesnt already exist
-                                if(userExists == false)
+                                else
                                 {
-                                    FileWriter fw = new FileWriter(fp,true);
-                                    fw.write("\n"+new_player_info);
-                                    fw.flush();
+                                    System.out.println("File not found");
+                                   
                                 }
                             }
                             else
                             {
-                                System.out.println("File not found");
+                                    System.out.println("Wrong player info format!");
+                                     this.pw.println("Fail");
                             }     
                         }
                         // Remove a player
-                        /*
+                        
                         if(start_flag.startsWith("RemovePlayer"))
                         {
-                            //// Check the validity of a input format - use regex /////
+                
                             String [] new_player_token = start_flag.split(",");
                             String new_player_info = new_player_token[1];
-                            File fp = new File("./users.txt");
-                            if(fp.exists())
+                            String login_regex = "^[a-zA-Z]{1,}[A-Za-z0-9]*:(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@!?=*-_])[A-Za-z0-9!_()?$!]{6,}(:admin|:contestant)?$";
+                            Pattern patternLogin = Pattern.compile(login_regex);
+                            Matcher matcherLogin = patternLogin.matcher(new_player_info);
+                            if(matcherLogin.find())
                             {
-                                BufferedReader in = new BufferedReader(new FileReader(fp));
-                                String line;                       
-                                while((line = in.readLine()) != null)
-                                {   
-                                    if(line.equals(new_player_info))
-                                    {
-                                      
+                                
+                                File fp = new File("./users.txt");
+                                if(fp.exists())
+                                {
+                                    String remainingUsers = "";
+                                    BufferedReader in = new BufferedReader(new FileReader(fp));
+                                    String line;                       
+                                    while((line = in.readLine()) != null)
+                                    {   
+                                        if(!line.equals(new_player_info))
+                                        {
+                                            remainingUsers+=line + "\n";
+                                        }
                                     }
+                                    
+                                    // This cleares the file
+                                    PrintWriter pw = new PrintWriter(fp);
+                                    pw.flush();
+                                    
+                                    this.pw.println("RemoveOk");
+                                    
+                                    // This writes the remaining users in the blank file 
+                                    FileWriter fw = new FileWriter(fp,true);
+                                    fw.write(remainingUsers);
+                                    fw.flush();    
                                 }
-
+                                else
+                                {
+                                    System.out.println("File not found");
+                                }     
                             }
-                            else
-                            {
-                                System.out.println("File not found");
-                            }     
                         }
-                        */
-                        
-                        break;
+                    break;
                                  
                     
                     case "IN_GAME" : 
                         //System.out.println("Im in IN_GAME state");
                         //System.out.println("Question number: " + this.question_number);
                         String new_question = br.readLine();
+                        if(new_question.startsWith("Start:"))   // This is added 
+                        {                     
+                            String [] active_set_fetch = new_question.split(":");
+                            String active_set = active_set_fetch[1];
+                            System.out.println(active_set);
+                            if(!this.previousSet.equals(active_set))
+                            {
+                                System.out.println("IN_GAME_STATE, New set requested : " + active_set);
+                                this.questions.clear();
+                                readSet(active_set);
+                                this.previousSet = active_set;
+                                this.question_number = 0;
+                                System.out.println(questions);
+                                for(ConnectedQuizClient clnt : this.allClients)
+                                {
+                                    clnt.pw.println("SetLoaded:"+active_set);
+                                }
+                                this.state = "IN_GAME";
+                            }
+                            else
+                            {
+                                System.out.println("Same set - Not possible");
+                                this.state = "START_QUIZ";
+                                this.pw.println("SameSetError");
+                            }
+                            System.out.println("Question number: " + this.question_number);
+                        }
+                         
                         if(new_question.startsWith("NewQuestion"))
                         {
                             String current_question = questions.get(question_number).getText();

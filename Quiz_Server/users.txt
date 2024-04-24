@@ -1,5 +1,7 @@
 Petar:123ABC_:admin
-Dunja:123ABC_:contestant
 Aleksa:123ABC_:contestant
 Nikola:123:contestant
 Marta:321:contestant
+Petar1:ABCD_1234:admin
+Dunja:123ABC_:admin
+Garisa:123ABC_:admin

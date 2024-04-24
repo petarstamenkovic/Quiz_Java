@@ -45,6 +45,7 @@ public class RecieveMessageFromServer implements Runnable {
                 // IF block that checks players credidentials
                 if(line.startsWith("Login ok:"))
                 {
+                        parent.getLogOutButton().setEnabled(true);
                         parent.getEnterButton().setEnabled(true);
                         parent.getCheckButton().setEnabled(false);
                         String [] check_role = line.split(":");
@@ -84,12 +85,14 @@ public class RecieveMessageFromServer implements Runnable {
                             parent.getRemovePlayer().setEnabled(true);
                             parent.getRemovePlayer().setVisible(false);
                             parent.getStartButton().setEnabled(true);
+                            parent.getStartButton().setVisible(false);
+                            parent.getRequestSetButton().setEnabled(false);
+                            parent.getRequestSetButton().setVisible(false);
                         }
                         else if (check_role[2].equals("contestant"))        // Log in contestant
                         {
-                            parent.getQuestionSet().setEnabled(true);
-                            parent.getAllPlayers().setEnabled(true);
-                            //parent.getAllPlayers().setVisible(false);
+                            parent.getQuestionSet().setVisible(false);
+                            parent.getAllPlayers().setEnabled(true);                     
                             
                             parent.getQuestionSet().addItem("Set 1");
                             parent.getQuestionSet().addItem("Set 2");
@@ -117,11 +120,17 @@ public class RecieveMessageFromServer implements Runnable {
                             parent.getLeaderboardButton().setVisible(false);
                             parent.getLoginArea().setEnabled(false);
                             parent.getStartButton().setVisible(false);
+                            parent.getStartButton().setEnabled(false);
+                            parent.getRequestSetButton().setEnabled(true);
+                            parent.getRequestSetButton().setVisible(false);
                             
                             // Contestant cant use this
                             parent.getAddRemovePlayerArea().setVisible(false);
                             parent.getAddPlayer().setVisible(false);
                             parent.getRemovePlayer().setVisible(false);
+                            parent.getAddRemovePlayerArea().setEnabled(false);
+                            parent.getAddPlayer().setEnabled(false);
+                            parent.getRemovePlayer().setEnabled(false);
                       
                         }   
                 }
@@ -131,6 +140,15 @@ public class RecieveMessageFromServer implements Runnable {
                     JOptionPane.showMessageDialog(null, "Wrong login format!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
  
+                if(line.startsWith("AddOk"))
+                {
+                    parent.getAddRemovePlayerArea().setText("");
+                }
+                if(line.startsWith("RemoveOk"))
+                {
+                    parent.getAddRemovePlayerArea().setText("");
+                }
+                
                 // LOGIN_OK STATE - ENTER_UPDATE - HERE IS WHAT HAPPENS WITH GUI AFTER PRESSING ENTER BUTTON
                 if(line.startsWith("Users:"))
                 {   
@@ -147,7 +165,22 @@ public class RecieveMessageFromServer implements Runnable {
                     {
                         parent.getAllPlayers().addItem(names[i]);
                     }
-                    parent.getStartButton().setVisible(true);   
+                    String [] token2 = parent.getLoginArea().getText().split(":");
+                    String currentPlayerRole = token2[2];
+                    if(currentPlayerRole.equals("admin"))
+                    {
+                        parent.getAddRemovePlayerArea().setVisible(true);
+                        parent.getAddPlayer().setVisible(true);
+                        parent.getRemovePlayer().setVisible(true);
+                        parent.getStartButton().setVisible(true);
+                        parent.getRequestSetButton().setVisible(false);
+                        
+                    }
+                    else if(currentPlayerRole.equals("contestant"))
+                    {
+                        parent.getStartButton().setVisible(false);
+                        parent.getRequestSetButton().setVisible(true);
+                    }
                 }
                 
                 // If block that doesnt allow a player to pick same set two times in a row
@@ -158,6 +191,9 @@ public class RecieveMessageFromServer implements Runnable {
                 
                 if(line.startsWith("SetLoaded"))
                 {
+                    String [] activeSetToken = line.split(":");
+                    String activeSet = activeSetToken[1];
+                    parent.getActiveSetLabel().setText(activeSet);
                     parent.getAnswerA().setVisible(true);
                     parent.getAnswerA().setEnabled(true);
                     parent.getAnswerB().setVisible(true);
@@ -173,9 +209,16 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getHelpFriend().setVisible(true);
                     parent.getHelpSwap().setVisible(true);
                     parent.getLeaderboardButton().setVisible(true);
-                    parent.getQuestionSet().setEnabled(false);
-                    parent.getStartButton().setEnabled(false);
+                    parent.getSubmintAnswerButton().setEnabled(false);
+                    //parent.getQuestionSet().setEnabled(false);
+                    //parent.getStartButton().setEnabled(false);
                 }
+                
+                if(line.startsWith("RequestSet"))
+                {
+                    parent.getRequestSetButton().setEnabled(false);
+                }
+                
                 // Question recieving
                 if(line.startsWith("NewQuestion"))
                 {
@@ -285,6 +328,18 @@ public class RecieveMessageFromServer implements Runnable {
                 }
                 if(line.startsWith("EndOfSet"))
                 {
+                    String [] token2 = parent.getLoginArea().getText().split(":");
+                    String currentPlayerRole = token2[2];
+                    if(currentPlayerRole.equals("admin"))
+                    {
+                        parent.getStartButton().setEnabled(true);
+                        parent.getQuestionSet().setEnabled(true);
+                    }
+                    else if(currentPlayerRole.equals("contestant"))
+                    {
+                        parent.getQuestionSet().setEnabled(false);
+                        parent.getRequestSetButton().setEnabled(true);
+                    }
                     parent.getAnswerA().setEnabled(false);
                     parent.getAnswerB().setEnabled(false);
                     parent.getAnswerC().setEnabled(false);
@@ -294,8 +349,8 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getHelp5050().setEnabled(false);
                     parent.getHelpFriend().setEnabled(false);
                     parent.getHelpSwap().setEnabled(false);
-                    parent.getStartButton().setEnabled(true);
-                    parent.getQuestionSet().setEnabled(true);
+                    
+                    
                     parent.getHelpSwap().setVisible(true);
                     parent.getHelp5050().setVisible(true);
                     parent.getHelpFriend().setVisible(true);
