@@ -42,6 +42,7 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getCheckButton().setEnabled(true);
                     parent.getConnectButton().setEnabled(false);
                     parent.getLoginArea().setEnabled(true);
+                    parent.getRoleBox().setEnabled(true);
                 }
                 
                 // IF block that checks players credidentials
@@ -50,8 +51,11 @@ public class RecieveMessageFromServer implements Runnable {
                         parent.getLogOutButton().setEnabled(true);
                         parent.getEnterButton().setEnabled(true);
                         parent.getCheckButton().setEnabled(false);
+                        String[]token = line.split(":");
+                        String loginInfo = token[1] + ":" + token[2] + ":" + token[3].trim();
+                        parent.getLoginArea().setText(loginInfo);
                         String [] check_role = line.split(":");
-                        if(check_role[2].equals("admin"))                    // Log in admin
+                        if(check_role[3].equals("admin"))                    // Log in admin
                         {
                             parent.getAllPlayers().setEnabled(true);
                             
@@ -137,11 +141,16 @@ public class RecieveMessageFromServer implements Runnable {
                         }   
                 }
                 
-                if(line.startsWith("Fail"))
+                if(line.startsWith("FailFormat"))
                 {
                     JOptionPane.showMessageDialog(null, "Wrong login format!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
- 
+                
+                if(line.startsWith("Failed login"))
+                {
+                    JOptionPane.showMessageDialog(null, "This user is not in database!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                
                 if(line.startsWith("AddOk"))
                 {
                     parent.getAddRemovePlayerArea().setText("");

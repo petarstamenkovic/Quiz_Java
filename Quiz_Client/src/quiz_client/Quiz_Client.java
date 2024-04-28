@@ -172,6 +172,10 @@ public class Quiz_Client extends javax.swing.JFrame {
         return logOutButton;
     }
 
+    public JComboBox<String> getRoleBox() {
+        return roleBox;
+    }
+
     
     
     /**
@@ -225,6 +229,7 @@ public class Quiz_Client extends javax.swing.JFrame {
         activeSetLabel = new javax.swing.JLabel();
         requestSetButton = new javax.swing.JButton();
         logOutButton = new javax.swing.JButton();
+        roleBox = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -276,7 +281,7 @@ public class Quiz_Client extends javax.swing.JFrame {
 
         jLabel2.setText("All players");
 
-        jLabel3.setText("username:password:role");
+        jLabel3.setText("username:password");
 
         questionSet.setEnabled(false);
         questionSet.addItemListener(new java.awt.event.ItemListener() {
@@ -427,21 +432,20 @@ public class Quiz_Client extends javax.swing.JFrame {
             }
         });
 
+        roleBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "admin", "contestant" }));
+        roleBox.setEnabled(false);
+        roleBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                roleBoxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(checkButton)
-                                .addGap(295, 295, 295))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(131, 131, 131))))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(20, 20, 20)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -464,22 +468,26 @@ public class Quiz_Client extends javax.swing.JFrame {
                                 .addComponent(activeSetLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(connectButton))
+                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(33, 33, 33))
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(roleBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
+                                .addComponent(checkButton)
+                                .addGap(18, 18, 18)
                                 .addComponent(enterButton)
                                 .addGap(18, 18, 18)
                                 .addComponent(startButton, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)))
-                        .addComponent(requestSetButton)))
+                                .addGap(18, 18, 18)
+                                .addComponent(requestSetButton))
+                            .addComponent(connectButton))))
+                .addGap(73, 73, 73)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 0, 0)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -507,9 +515,9 @@ public class Quiz_Client extends javax.swing.JFrame {
                             .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, 0)
                         .addComponent(jLabel7)
-                        .addGap(0, 57, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 43, Short.MAX_VALUE)
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(logOutButton)
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -592,14 +600,19 @@ public class Quiz_Client extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(checkButton)
-                            .addComponent(enterButton)
-                            .addComponent(startButton)
-                            .addComponent(requestSetButton))
-                        .addGap(14, 14, 14))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(checkButton)
+                                    .addComponent(enterButton)
+                                    .addComponent(startButton)
+                                    .addComponent(requestSetButton))
+                                .addGap(14, 14, 14))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(roleBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))))
         );
 
         pack();
@@ -610,7 +623,8 @@ public class Quiz_Client extends javax.swing.JFrame {
     // Try to remove update players by somehow automaticly updating player list in this function
     private void checkButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkButtonActionPerformed
          String login_info = this.getLoginArea().getText();
-         this.pw.println(login_info);
+         String role_info = this.getRoleBox().getSelectedItem().toString();
+         this.pw.println(login_info + ":" + role_info);
      
     }//GEN-LAST:event_checkButtonActionPerformed
 
@@ -683,12 +697,16 @@ public class Quiz_Client extends javax.swing.JFrame {
 
     private void addPlayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPlayerActionPerformed
         String addPlayer = this.getAddRemovePlayerArea().getText();
-        this.pw.println("AddPlayer"+","+addPlayer);
+        String playerRole = this.getRoleBox().getSelectedItem().toString();
+        
+        this.pw.println("AddPlayer"+","+addPlayer+":"+playerRole);
     }//GEN-LAST:event_addPlayerActionPerformed
 
     private void removePlayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removePlayerActionPerformed
          String removePlayer = this.getAddRemovePlayerArea().getText();
-         this.pw.println("RemovePlayer"+","+removePlayer);
+         String playerRole = this.getRoleBox().getSelectedItem().toString();
+         
+         this.pw.println("RemovePlayer"+","+removePlayer+":"+playerRole);
     }//GEN-LAST:event_removePlayerActionPerformed
 
     private void submintAnswerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submintAnswerButtonActionPerformed
@@ -781,6 +799,10 @@ public class Quiz_Client extends javax.swing.JFrame {
         this.pw.println("LogOut:" + whoLogsOut);
     }//GEN-LAST:event_logOutButtonActionPerformed
 
+    private void roleBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_roleBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_roleBoxActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -857,6 +879,7 @@ public class Quiz_Client extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> questionSet;
     private javax.swing.JButton removePlayer;
     private javax.swing.JButton requestSetButton;
+    private javax.swing.JComboBox<String> roleBox;
     private javax.swing.JButton startButton;
     private javax.swing.JButton submintAnswerButton;
     // End of variables declaration//GEN-END:variables
