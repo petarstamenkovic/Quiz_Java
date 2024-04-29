@@ -704,9 +704,9 @@ public class Quiz_Client extends javax.swing.JFrame {
 
     private void removePlayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removePlayerActionPerformed
          String removePlayer = this.getAddRemovePlayerArea().getText();
-         String playerRole = this.getRoleBox().getSelectedItem().toString();
+         //String playerRole = this.getRoleBox().getSelectedItem().toString();
          
-         this.pw.println("RemovePlayer"+","+removePlayer+":"+playerRole);
+         this.pw.println("RemovePlayer"+","+removePlayer);
     }//GEN-LAST:event_removePlayerActionPerformed
 
     private void submintAnswerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submintAnswerButtonActionPerformed

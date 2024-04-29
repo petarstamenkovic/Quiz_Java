@@ -1,5 +1,7 @@
 package quiz_server;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,8 +18,8 @@ public class Quiz_Server {
     private int port;
     private ArrayList<ConnectedQuizClient> clients;
     private static final String AES = "AES";
-  
-    // Block cipher(CBC mode) - tzv Blok sifra kod koje se originalna poruka sifruje po grupama (blokovima)
+    private SecretKey symmetricKey;
+    private byte[] initializationVector;
     private static final String AES_CIPHER_ALGORITHM = "AES/CBC/PKCS5PADDING";
     
     public ServerSocket getSsocket() {
@@ -46,7 +48,8 @@ public class Quiz_Server {
             System.out.println("Waiting for new clients...");
             client = this.ssocket.accept();
             
-            SecretKey symmetricKey = createAESKey();
+            //SecretKey symmetricKey = createAESKey();
+            System.out.println("Key is : " + symmetricKey);
             byte[] initializationVector = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
             
             if(client != null)
@@ -63,79 +66,63 @@ public class Quiz_Server {
         }
     }
 
-
-    // Funkcija koja kreira skriveni kljuc
     public static SecretKey createAESKey() throws Exception {
         SecureRandom securerandom = new SecureRandom();
         String seed = "RSZEOS2024";
         securerandom.setSeed(seed.getBytes());
-        //prilikom pravljenja kljuca navodi se koji se algoritam koristi
         KeyGenerator keygenerator = KeyGenerator.getInstance(AES);
-  
-        //duzina kljuca se navodi prilikom pozivanja init funkcije
-        //ovde koristimo duzinu 128 bita (za 256 bita je potrebno instalirati 
-        //dodatne pakete)
         keygenerator.init(128, securerandom);
-        
-        SecretKey key = keygenerator.generateKey();
-  
+        SecretKey key = keygenerator.generateKey(); 
         return key;
     }
     
     public static byte[] createInitializationVector()
     {
-
-        //velicina inicijalizacionog vektora
         byte[] initializationVector = new byte[16];
         SecureRandom secureRandom = new SecureRandom();
         secureRandom.nextBytes(initializationVector);
         return initializationVector;
     }
-    
-        //Funkcija koja prima otvoreni tekst, kljuc i inicijalizacioni vektor i 
-    //generise sifrat (cipher text)
+
     public static byte[] do_AESEncryption(String plainText, SecretKey secretKey, byte[] initializationVector) throws Exception{
-        //klasa Cipher se koristi za enkripciju/dekripciju, prilikom kreiranja navodi se koji algoritam se koristi
         Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
-        
-        //IvParameterSpec se kreira koristeci inicijalizacioni vektor a potreban je za inicijalizaciju cipher objekta
         IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
-  
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
-  
-        //metoda doFinal nakon sto se inicijalizuje metodom init, vrsi enkripciju otvorenog teksta
         return cipher.doFinal(plainText.getBytes());
     }
 
-    //Funkcija koja prima sifrat (kriptovan tekst), kljuc i inicijalizacioni vektor i vraca dekriptovani tekst
-    //generise sifrat (cipher text)
     public static String do_AESDecryption(byte[] cipherText, SecretKey secretKey, byte[] initializationVector) throws Exception{
-        Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
-  
+        Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM); 
         IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
-  
         cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
-  
-        //ista metoda doFinal se koriti i za dekripciju
         byte[] result = cipher.doFinal(cipherText);
-  
         return new String(result);
     }
     
-    // Constructor for a server - just supply a port to listen to
-    public Quiz_Server(int port) throws IOException
+    public Quiz_Server(int port) throws IOException, Exception
     {
         this.clients = new ArrayList<>();
         this.port = port;
-        this.ssocket = new ServerSocket(port);    
+        this.ssocket = new ServerSocket(port);  
+        this.symmetricKey = createAESKey();
     }
  
+    public void LoadInitialAdmin() throws FileNotFoundException, IOException, Exception
+    {
+        byte[] init_vec = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
+        String startAdmin = "Petar:123ABC@d:admin";
+        byte[] encAdmin = do_AESEncryption(startAdmin,this.symmetricKey,init_vec);
+        FileOutputStream fos = new FileOutputStream("./users.txt");
+        fos.write(encAdmin);
+        fos.flush();
+    }
+    
     // Main starts the server
     public static void main(String[] args) throws IOException, Exception 
     {
         Quiz_Server server = new Quiz_Server(6001);
-        
         System.out.println("Server online, listening on port 6001...");
+        server.LoadInitialAdmin();
         server.acceptClients();
     }
     

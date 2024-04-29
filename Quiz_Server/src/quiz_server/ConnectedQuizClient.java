@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -121,26 +122,22 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
     
     public void readUsers() throws FileNotFoundException, IOException, Exception
     {
-        /*
+      
         Path path = Paths.get("./users.txt");
         byte[] encMessage = Files.readAllBytes(path);
-        
-        // Ensure the encrypted message length is a multiple of 16 bytes
-        int blockSize = 16;
-        int remainder = encMessage.length % blockSize;
-        if (remainder != 0) {
-        // Add padding to make the length a multiple of 16 bytes
-        int paddingLength = blockSize - remainder;
-        byte[] paddedMessage = new byte[encMessage.length + paddingLength];
-        System.arraycopy(encMessage, 0, paddedMessage, 0, encMessage.length);
-        encMessage = paddedMessage;
-    }
-        
+
         String decryptedText = do_AESDecryption(encMessage, this.key, this.init_vector);
         System.out.println(decryptedText);
-        */
+        String [] users_token = decryptedText.split("\n");
+        for(int i = 0 ; i < users_token.length ; i++)
+        {
+            String [] userToken = users_token[i].split(":");
+            User user = new User(userToken[0],userToken[1],userToken[2]);
+            possibleUsers.add(user);
+        }
         
         
+        /*
         File fp = new File("./users.txt");
         if(fp.exists())
         {
@@ -158,6 +155,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
         {
             System.out.println("File not found!");
         }
+        */
         
     }
     
@@ -266,7 +264,8 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
     @Override
     public void run()
     {
-        
+        //System.out.println(this.key);
+        //System.out.println(Arrays.toString(this.init_vector));
         try {
             readUsers();
         } catch (IOException ex) {
@@ -527,109 +526,102 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             String [] new_player_token = start_flag.split(",");
                             String new_player_info = new_player_token[1];
                             String [] token = new_player_info.split(":");
-                            String userPass = token[0] + ":" + token[1];
-                            String rolePlayer = token[2];
-                            String login_regex = "^[a-zA-Z]{1,}[A-Za-z0-9]*:(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d\\W]{6,}$";
-                            String role_regex = "^(admin|contestant)$";
-                            
-                            Pattern patternRole = Pattern.compile(role_regex);
-                            Pattern patternLogin = Pattern.compile(login_regex);
-                            
-                            Matcher matcherLogin = patternLogin.matcher(userPass);
-                            Matcher matcherRole = patternRole.matcher(rolePlayer);
-                            if(matcherLogin.find() && matcherRole.find())
+                            if(token.length == 3)
                             {
-                                File fp = new File("./users.txt");
-                                if(fp.exists())
+                                String userPass = token[0] + ":" + token[1];
+                                String rolePlayer = token[2];
+                                String login_regex = "^[a-zA-Z]{1,}[A-Za-z0-9]*:(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d\\W]{6,}$";
+                                String role_regex = "^(admin|contestant)$";
+
+                                Pattern patternRole = Pattern.compile(role_regex);
+                                Pattern patternLogin = Pattern.compile(login_regex);
+
+                                Matcher matcherLogin = patternLogin.matcher(userPass);
+                                Matcher matcherRole = patternRole.matcher(rolePlayer);
+                                if(matcherLogin.find() && matcherRole.find())
                                 {
-                                    BufferedReader in = new BufferedReader(new FileReader(fp));
-                                    String line;
-                                    boolean userExists = false;
-                                    while((line = in.readLine()) != null)
-                                    {   
-                                        if(line.equals(new_player_info))
+                                    // Here we decrypt
+                                    Path path = Paths.get("./users.txt");
+                                    byte[] encMessage = Files.readAllBytes(path);
+                                    String decryptedText = do_AESDecryption(encMessage, this.key, this.init_vector);               
+                                    boolean addOK = true;
+                                    String [] addToken = decryptedText.split("\n");
+                                    for(int i = 0 ; i < addToken.length ; i++)
+                                    {
+                                        if(new_player_info.equals(addToken[i]))
                                         {
-                                            userExists = true;
+                                            addOK = false;
+                                            System.out.println("Found the same player, cant add him again");
                                             break;
                                         }
                                     }
-                                    // User doesnt already exist
-                                    if(userExists == false)
+
+                                    if(addOK == true)
                                     {
+                                        decryptedText+="\n"+new_player_info;
                                         this.pw.println("AddOk");
-                                        FileWriter fw = new FileWriter(fp,true);
-                                        fw.write("\n");
-                                        fw.write(new_player_info);
-                                        fw.flush();
+                                        encMessage = do_AESEncryption(decryptedText,this.key,this.init_vector);
+                                        Files.write(path,encMessage);
                                     }
                                     else
                                     {
-                                        System.out.println("User already exists!");
+                                        System.out.println("User already exists");
+                                        this.pw.println("ExistingUser");
                                     }
+                                    System.out.println("New Player added!");
+                                    System.out.println(decryptedText);
                                 }
                                 else
                                 {
-                                    System.out.println("File not found");
-                                   
+                                    System.out.println("Invalid format!");
+                                    this.pw.println("FailFormat");
                                 }
                             }
                             else
                             {
-                                    System.out.println("Wrong player info format!");
-                                    this.pw.println("Fail");
-                            }     
-                        }
-                        
+                                System.out.println("Invalid format!");
+                                this.pw.println("TypeFailure");
+                            }
+                        }     
+                         
                         // Remove a player
                         if(start_flag.startsWith("RemovePlayer"))
                         {
                             String [] new_player_token = start_flag.split(",");
-                            String new_player_info = new_player_token[1];
-                            String [] token = new_player_info.split(":");
-                            String userPass = token[0] + ":" + token[1];
-                            String rolePlayer = token[2];
-                            
-                            String login_regex = "^[a-zA-Z]{1,}[A-Za-z0-9]*:(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d\\W]{6,}$";
-                            String role_regex = "^(admin|contestant)$";
-                            
-                            Pattern patternLogin = Pattern.compile(login_regex);
-                            Pattern patternRole = Pattern.compile(role_regex);
-                            
-                            Matcher matcherLogin = patternLogin.matcher(userPass);
-                            Matcher matcherRole = patternRole.matcher(rolePlayer);
-                            
-                            if(matcherLogin.find() && matcherRole.find())
+                            String new_player_info = new_player_token[1];          
+                            String usernameRegex = "^[a-zA-Z]{1,}[A-Za-z0-9]*$";                        
+                            Pattern patternLogin = Pattern.compile(usernameRegex);      
+                            Matcher matcherLogin = patternLogin.matcher(new_player_info);                            
+                            if(matcherLogin.find())
                             {
-                                
-                                File fp = new File("./users.txt");
-                                if(fp.exists())
+                                String newPlayerList = null;
+                                Path path = Paths.get("./users.txt");
+                                byte[] encMessage = Files.readAllBytes(path);
+                                String decryptedText = do_AESDecryption(encMessage, this.key, this.init_vector);   
+                                String [] userToken = decryptedText.split("\n");
+                                for(int i = 0 ; i < userToken.length ; i++)
                                 {
-                                    String remainingUsers = "";
-                                    BufferedReader in = new BufferedReader(new FileReader(fp));
-                                    String line;                       
-                                    while((line = in.readLine()) != null)
-                                    {   
-                                        if(!line.equals(new_player_info))
-                                        {
-                                            remainingUsers+=line + "\n";
-                                        }
+                                    String [] currentToken = userToken[i].split(":");
+                                    String currentUsername = currentToken[0];
+                                    if(!new_player_info.equals(currentUsername))
+                                    {
+                                        newPlayerList+="\n"+userToken[i];
                                     }
-                                    
-                                    // This cleares the file
-                                    PrintWriter pw = new PrintWriter(fp);
-                                    pw.flush();
-                                    
-                                    this.pw.println("RemoveOk");
-                                    
-                                    // This writes the remaining users in the blank file 
-                                    FileWriter fw = new FileWriter(fp,true);
-                                    fw.write(remainingUsers);
-                                    fw.flush();    
+                                    else
+                                    {
+                                        System.out.println("Found the player to remove.");
+                                        this.pw.println("RemoveOk");
+                                    }
                                 }
-                                else
-                                {
-                                    System.out.println("File not found");
-                                }     
+                                
+                                encMessage = do_AESEncryption(newPlayerList,this.key,this.init_vector);
+                                Files.write(path,encMessage);
+                            
+                            }
+                            else
+                            {
+                                System.out.println("Invalide remove format!");
+                                this.pw.println("xRemove");
                             }
                         }
                         
@@ -905,9 +897,11 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                 
             } catch (IOException ex) {
                 Logger.getLogger(ConnectedQuizClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
+                Logger.getLogger(ConnectedQuizClient.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
-        }
+
     }
     
+}
 }

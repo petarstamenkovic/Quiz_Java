@@ -159,12 +159,24 @@ public class RecieveMessageFromServer implements Runnable {
                 if(line.startsWith("AddOk"))
                 {
                     parent.getAddRemovePlayerArea().setText("");
+                    JOptionPane.showMessageDialog(null, "New User added successfuly!", "Information", JOptionPane.INFORMATION_MESSAGE);
+                }
+                if(line.startsWith("ExistingUser"))
+                {
+                    parent.getAddRemovePlayerArea().setText("");
+                    JOptionPane.showMessageDialog(null, "User already exists", "Error", JOptionPane.ERROR_MESSAGE);
+
                 }
                 if(line.startsWith("RemoveOk"))
                 {
+                    JOptionPane.showMessageDialog(null, "User found and removed!", "Information", JOptionPane.INFORMATION_MESSAGE);
                     parent.getAddRemovePlayerArea().setText("");
                 }
-                
+                if(line.startsWith("xRemove"))
+                {
+                    parent.getAddRemovePlayerArea().setText("");
+                    JOptionPane.showMessageDialog(null, "Invalid format! \nInput just a username. ", "Error", JOptionPane.ERROR_MESSAGE);
+                }
                 // LOGIN_OK STATE - ENTER_UPDATE - HERE IS WHAT HAPPENS WITH GUI AFTER PRESSING ENTER BUTTON
                 if(line.startsWith("Users:"))
                 {   
@@ -407,6 +419,7 @@ public class RecieveMessageFromServer implements Runnable {
                 {
                     parent.getLogOutButton().setEnabled(false);
                     parent.getMainFrame().dispose();
+                    System.exit(0);
                 }
                 if(line.startsWith("PlayerOut"))
                 {
