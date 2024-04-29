@@ -47,7 +47,7 @@ public class Quiz_Server {
             client = this.ssocket.accept();
             
             SecretKey symmetricKey = createAESKey();
-            byte[] initializationVector = createInitializationVector();
+            byte[] initializationVector = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
             
             if(client != null)
             {
@@ -67,6 +67,8 @@ public class Quiz_Server {
     // Funkcija koja kreira skriveni kljuc
     public static SecretKey createAESKey() throws Exception {
         SecureRandom securerandom = new SecureRandom();
+        String seed = "RSZEOS2024";
+        securerandom.setSeed(seed.getBytes());
         //prilikom pravljenja kljuca navodi se koji se algoritam koristi
         KeyGenerator keygenerator = KeyGenerator.getInstance(AES);
   

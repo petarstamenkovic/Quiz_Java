@@ -45,6 +45,11 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getRoleBox().setEnabled(true);
                 }
                 
+                if(line.startsWith("TypeFailure"))
+                {
+                    JOptionPane.showMessageDialog(null, "Login info format error \n Should be xxx:xxx", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                
                 // IF block that checks players credidentials
                 if(line.startsWith("Login ok:"))
                 {
@@ -191,6 +196,8 @@ public class RecieveMessageFromServer implements Runnable {
                     {
                         parent.getStartButton().setVisible(false);
                         parent.getRequestSetButton().setVisible(true);
+                        parent.getRequestSetButton().setEnabled(true);
+                        parent.getAllPlayers().setEnabled(true);
                     }
                 }
                 
@@ -264,6 +271,16 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getSubmintAnswerButton().setEnabled(true);
                 }
                 
+                if(line.startsWith("CorrectAnswer"))
+                {
+                    JOptionPane.showMessageDialog(null, "Correct!", "Good job", JOptionPane.INFORMATION_MESSAGE);
+                }
+                
+                if(line.startsWith("WrongAnswer"))
+                {
+                    JOptionPane.showMessageDialog(null, "Wrong!", "Not so good job", JOptionPane.ERROR_MESSAGE);
+                }
+                    
                 if(line.startsWith("SwapQ"))
                 {
                     String [] swap_token = line.split(":");
