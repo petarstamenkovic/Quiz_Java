@@ -1,17 +1,11 @@
-
 package quiz_client;
 
 import java.awt.Color;
-import java.awt.Window;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
 
 
 public class RecieveMessageFromServer implements Runnable {
@@ -33,9 +27,9 @@ public class RecieveMessageFromServer implements Runnable {
             try {
                 String line;
                 line = this.br.readLine();
-                System.out.println(line);  
+                System.out.println(line);   // Print statment for console logging
                 
-                // IF block that connects a player to a game
+                // If block that connects a player to a game
                 if(line.startsWith("Success"))
                 {
                     parent.getStartButton().setVisible(false);
@@ -45,6 +39,7 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getRoleBox().setEnabled(true);
                 }
                 
+                // If block that alerts about a type failure
                 if(line.startsWith("TypeFailure"))
                 {
                     JOptionPane.showMessageDialog(null, "Login info format error \n Should be xxx:xxx", "Error", JOptionPane.ERROR_MESSAGE);
@@ -146,38 +141,55 @@ public class RecieveMessageFromServer implements Runnable {
                         }   
                 }
                 
+                // If block that alerts us that format is wrong, requirements not satisfied
                 if(line.startsWith("FailFormat"))
                 {
                     JOptionPane.showMessageDialog(null, "Wrong login format!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
                 
+                // If block that alerts us that user is not in out database - users.txt - Fetching a non-existing user
                 if(line.startsWith("Failed login"))
                 {
                     JOptionPane.showMessageDialog(null, "This user is not in database!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
                 
+                // If block that informs us that a new player is succesfully added
                 if(line.startsWith("AddOk"))
                 {
                     parent.getAddRemovePlayerArea().setText("");
                     JOptionPane.showMessageDialog(null, "New User added successfuly!", "Information", JOptionPane.INFORMATION_MESSAGE);
                 }
+                
+                // If block that alerts us that user already exists
                 if(line.startsWith("ExistingUser"))
                 {
                     parent.getAddRemovePlayerArea().setText("");
                     JOptionPane.showMessageDialog(null, "User already exists", "Error", JOptionPane.ERROR_MESSAGE);
 
                 }
+                
+                // If block that alerts us that user is succesfully removed
                 if(line.startsWith("RemoveOk"))
                 {
                     JOptionPane.showMessageDialog(null, "User found and removed!", "Information", JOptionPane.INFORMATION_MESSAGE);
                     parent.getAddRemovePlayerArea().setText("");
                 }
+                
+                // If block that alerts us that format for removing is invalid
                 if(line.startsWith("xRemove"))
                 {
                     parent.getAddRemovePlayerArea().setText("");
                     JOptionPane.showMessageDialog(null, "Invalid format! \nInput just a username. ", "Error", JOptionPane.ERROR_MESSAGE);
                 }
-                // LOGIN_OK STATE - ENTER_UPDATE - HERE IS WHAT HAPPENS WITH GUI AFTER PRESSING ENTER BUTTON
+                
+                // If block that alerts us that you cant leave a field blank upon removing
+                if(line.startsWith("404Remove"))
+                {
+                    JOptionPane.showMessageDialog(null, "Cant leave this field blank!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                
+                
+                // If block that covers the situation where login is ok, player presses enter button and enters a room
                 if(line.startsWith("Users:"))
                 {   
                     parent.getAllPlayers().removeAllItems();
@@ -218,10 +230,14 @@ public class RecieveMessageFromServer implements Runnable {
                 {
                     JOptionPane.showMessageDialog(null, "Can not pick the same set again", "Error", JOptionPane.ERROR_MESSAGE);
                 }
+                
+                // If block that alerts us that contestant is tryna fetch a non-existing set
                 if(line.startsWith("NoSet"))
                 {
                     JOptionPane.showMessageDialog(null, "Admin did not select a set!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
+                
+                // If block that triggers once set is loaded
                 if(line.startsWith("SetLoaded"))
                 {
                     String [] activeSetToken = line.split(":");
@@ -243,16 +259,16 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getHelpSwap().setVisible(true);
                     parent.getLeaderboardButton().setVisible(true);
                     parent.getSubmintAnswerButton().setEnabled(false);
-                    //parent.getQuestionSet().setEnabled(false);
-                    //parent.getStartButton().setEnabled(false);
                 }
                 
+                // If block that informs us that a contestant fetched a set
                 if(line.startsWith("RequestSet"))
                 {
+                    JOptionPane.showMessageDialog(null, "Set succesfully requested!\nQuiz begins!", "Welcome", JOptionPane.INFORMATION_MESSAGE);
                     parent.getRequestSetButton().setEnabled(false);
                 }
                 
-                // Question recieving
+                // If block that covers a question receiving 
                 if(line.startsWith("NewQuestion"))
                 {
                     String [] question_token = line.split(":");
@@ -283,16 +299,19 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getSubmintAnswerButton().setEnabled(true);
                 }
                 
+                // If block that informs us that the submited answers is correct
                 if(line.startsWith("CorrectAnswer"))
                 {
                     JOptionPane.showMessageDialog(null, "Correct!", "Good job", JOptionPane.INFORMATION_MESSAGE);
                 }
                 
+                // If block that alerts us that the submited answer is wrong
                 if(line.startsWith("WrongAnswer"))
                 {
                     JOptionPane.showMessageDialog(null, "Wrong!", "Not so good job", JOptionPane.ERROR_MESSAGE);
                 }
                     
+                // If block that covers the question swap help scenario
                 if(line.startsWith("SwapQ"))
                 {
                     String [] swap_token = line.split(":");
@@ -318,7 +337,7 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getAnswerD().setForeground(Color.black);
                     parent.getSubmintAnswerButton().setEnabled(true);
                 }
-                
+                // If block that covers the 50/50 help scenario
                 if(line.startsWith("5050"))
                 {
                     String [] falseTokens = line.split(":");
@@ -350,6 +369,7 @@ public class RecieveMessageFromServer implements Runnable {
                     
                 }
                 
+                // If block that covers the friend help scenario
                 if(line.startsWith("Friend"))
                 {
                     String []frnd_token = line.split(":");
@@ -357,11 +377,11 @@ public class RecieveMessageFromServer implements Runnable {
                     String rcvdQuestion = frnd_token[2];
                     parent.getLeaderboardArea().setText("");
                     parent.getLeaderboardArea().setText("Help requested from : " + whoAsks + ":" + "\n" + rcvdQuestion);
-                    //parent.getHelpFriend().setVisible(false);
                     parent.getHelpArea().setEnabled(true);
                     parent.getHelpButton().setEnabled(true);
                 }
                 
+                // If block that covers the response scenario to a friend help
                 if(line.startsWith("Response"))
                 {
                     String [] rcvdMessageToken = line.split(":");
@@ -369,6 +389,8 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getLeaderboardArea().setText("");
                     parent.getLeaderboardArea().setText(rcvdMessage);
                 }
+                
+                // If block that covers the end of a set scenario
                 if(line.startsWith("EndOfSet"))
                 {
                     String [] token2 = parent.getLoginArea().getText().split(":");
@@ -393,13 +415,14 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getHelpFriend().setEnabled(false);
                     parent.getHelpSwap().setEnabled(false);
                     
-                    
                     parent.getHelpSwap().setVisible(true);
                     parent.getHelp5050().setVisible(true);
                     parent.getHelpFriend().setVisible(true);
                     parent.getQuestionArea().setText("");
                     
                 }
+                
+                // If block that shows the current leaderboard
                 if(line.startsWith("NewLeaderboard"))
                 {
                     String [] token = line.split("-");
@@ -415,12 +438,16 @@ public class RecieveMessageFromServer implements Runnable {
                     parent.getLeaderboardArea().setText("");
                     parent.getLeaderboardArea().setText(messageToDisplay);
                 }
+                
+                // If block that logs the player out
                 if(line.startsWith("LogOutOK"))
                 {
                     parent.getLogOutButton().setEnabled(false);
                     parent.getMainFrame().dispose();
                     System.exit(0);
                 }
+                
+                // if block that removes the player from the array list of all players - this is sent to all other players that stay in the game
                 if(line.startsWith("PlayerOut"))
                 {
                     String [] removeToken = line.split(":");

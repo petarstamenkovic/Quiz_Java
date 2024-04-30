@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -37,7 +36,6 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
     private String role;
     private static final String AES = "AES";
   
-    // Block cipher(CBC mode) - tzv Blok sifra kod koje se originalna poruka sifruje po grupama (blokovima)
     private static final String AES_CIPHER_ALGORITHM = "AES/CBC/PKCS5PADDING";
     private ArrayList<User> possibleUsers; 
     private ArrayList<Question> questions;
@@ -45,7 +43,6 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
     private int questions_answered;
     private int right_answeres;
     private String previousSet;
-    private String activeSet;
     private boolean endOfSet;
     private SecretKey key;
     private byte[] init_vector;
@@ -69,19 +66,20 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
             this.questions_answered = 0;
             this.right_answeres = 0;
             this.previousSet = "";
-            this.activeSet = "";
             this.endOfSet = false;
         } catch (IOException ex) {
             Logger.getLogger(ConnectedQuizClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
+    // Overriden method that prints out a client in usable form
     @Override 
     public String toString()
     {
         return "Name: " + this.username + ": " + this.right_answeres + " / " + this.questions_answered; 
     }
     
+    // Overriden method that uses comparable interface to sort players
     @Override
     public int compareTo(ConnectedQuizClient clnt2)
     {
@@ -92,37 +90,24 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
     
     }
     
-        public static byte[] do_AESEncryption(String plainText, SecretKey secretKey, byte[] initializationVector) throws Exception{
-        //klasa Cipher se koristi za enkripciju/dekripciju, prilikom kreiranja navodi se koji algoritam se koristi
+    public static byte[] do_AESEncryption(String plainText, SecretKey secretKey, byte[] initializationVector) throws Exception{
         Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
-        
-        //IvParameterSpec se kreira koristeci inicijalizacioni vektor a potreban je za inicijalizaciju cipher objekta
-        IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
-  
+        IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector); 
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);
-  
-        //metoda doFinal nakon sto se inicijalizuje metodom init, vrsi enkripciju otvorenog teksta
         return cipher.doFinal(plainText.getBytes());
     }
 
-    //Funkcija koja prima sifrat (kriptovan tekst), kljuc i inicijalizacioni vektor i vraca dekriptovani tekst
-    //generise sifrat (cipher text)
     public static String do_AESDecryption(byte[] cipherText, SecretKey secretKey, byte[] initializationVector) throws Exception{
-        Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
-  
+        Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM); 
         IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
-  
         cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParameterSpec);
-  
-        //ista metoda doFinal se koriti i za dekripciju
         byte[] result = cipher.doFinal(cipherText);
-  
         return new String(result);
     }
     
+    // Method that reads the users at the start of a program in a possibleUsers array list, loading initial admin
     public void readUsers() throws FileNotFoundException, IOException, Exception
     {
-      
         Path path = Paths.get("./users.txt");
         byte[] encMessage = Files.readAllBytes(path);
 
@@ -134,31 +119,10 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
             String [] userToken = users_token[i].split(":");
             User user = new User(userToken[0],userToken[1],userToken[2]);
             possibleUsers.add(user);
-        }
-        
-        
-        /*
-        File fp = new File("./users.txt");
-        if(fp.exists())
-        {
-            BufferedReader in = new BufferedReader(new FileReader(fp));
-            String line;
-            
-            while((line = in.readLine()) != null)
-            {
-                String [] token = line.split(":");
-                User user = new User(token[0],token[1],token[2]);
-                possibleUsers.add(user);
-            }
-        }
-        else 
-        {
-            System.out.println("File not found!");
-        }
-        */
-        
+        }   
     }
     
+    // Method that reads the setN.txt files and loads the informaton in a question array list
     public void readSet(String active_set) throws FileNotFoundException, IOException
     {
         String filename = null;
@@ -202,21 +166,18 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
             String answerAText = "";
             String answerBText = "";
             String answerCText = "";
-            String answerDText;
             String currentQuestionText = null;
             BufferedReader in = new BufferedReader(new FileReader(fp));
             
             String line;
            
             while((line = in.readLine()) != null)
-            {   
-                
+            {
                 Matcher matcherQ = patternQ.matcher(line);
                 Matcher matcherA = patternA.matcher(line);
                 Matcher matcherB = patternB.matcher(line);
                 Matcher matcherC = patternC.matcher(line);
                 Matcher matcherD = patternD.matcher(line);
-
                 
                 if(matcherQ.find()) // Found a question
                 {
@@ -227,20 +188,17 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                 if(matcherA.find()) 
                 {
                     System.out.println("Found a wrong answer a)");
-                    answerAText = line;
-                    //Answer answerA = new Answer(line,false);   
+                    answerAText = line;  
                 }
                 if(matcherB.find()) 
                 {   
                     System.out.println("Found a wrong answer b)");
                     answerBText = line;
-                    //Answer answerB = new Answer(line,false);
                 }
                 if(matcherC.find())
                 {
                     System.out.println("Found a wrong answer c)");
                     answerCText = line;
-                    //Answer answerC = new Answer(line,false);
                 }
                 if(matcherD.find())
                 {
@@ -260,12 +218,10 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
         }
     }
     
-    // Read from user files here
+    // Overriden method that runs upon creating a new client thread
     @Override
     public void run()
     {
-        //System.out.println(this.key);
-        //System.out.println(Arrays.toString(this.init_vector));
         try {
             readUsers();
         } catch (IOException ex) {
@@ -275,11 +231,11 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
         }
         while(true)
         {
-            
             try {
- 
+                // FSM that leads the client in adequate states
                 switch(this.state)
                 {
+                    // STATE - CLIENTS IS NOT CONNECTED YET
                     case "CONNECT" :
                         String connect_flag = br.readLine();
                         if(connect_flag.startsWith("Connect"))
@@ -289,29 +245,27 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                         }
                         break;
                         
-                        
+                    // STATE - CLIENT IS TRYING TO LOG IN - UPON FAILING COME BACK HERE    
                     case "LOGIN" :
                         try {
                             String login_info = br.readLine();
                             String [] loginToken = login_info.split(":");
                             
+                            // If that requires a xxx:xxx format
                             if(loginToken.length == 3)
                             {
                                 String userPassText = loginToken[0]+":"+loginToken[1];
                                 String roleLogin = loginToken[2];
-                                System.out.println(login_info);
-                                System.out.println(userPassText);
-                                System.out.println(roleLogin);
-                                // Is this regex okay? Lowercase letter issue
                                 String login_regex = "^[a-zA-Z]{1,}[A-Za-z0-9]*:(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9:])[A-Za-z\\d\\W]{6,}$";
                                 String role_regex = "^(admin|contestant)$";
-
 
                                 Pattern patternLogin = Pattern.compile(login_regex);
                                 Pattern patternRole = Pattern.compile(role_regex);
 
                                 Matcher matcherRole = patternRole.matcher(roleLogin);
                                 Matcher matcherLogin = patternLogin.matcher(userPassText);
+                                
+                                // All okay - continute
                                 if(matcherLogin.find() && matcherRole.find())
                                 {
                                     System.out.println(login_info);
@@ -331,6 +285,8 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                                             this.username = u.getUsername();
                                             this.role = u.getRole();
                                             this.password = u.getPassword();
+                                            
+                                            // Check for backup
                                             File fp = new File("./playerStats.txt");
                                             BufferedReader in = new BufferedReader(new FileReader(fp));
                                             String line;
@@ -356,10 +312,12 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                                                 
                                             }
                                             this.pw.println(message);
-                                            this.state = "CHECK_OK";
+                                            this.state = "CHECK_OK";    // Proceed to a next state
                                             break;
                                         }
                                     }
+                                    
+                                    // No user found, stay in this state
                                     if(match == 0)
                                     {
                                         System.out.println("No match found in db, login failed");
@@ -388,13 +346,14 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                         }
                         
                         break;
-                        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                        
+
+                    // STATE - WAIT FOR ENTER PRESS TO ENTER A GAME ROOM - UPON PRESSING ENTER AN ARRAY LIST
                     case "CHECK_OK" :
                         String enter_update = br.readLine();
                         int num_users = this.allClients.size();
                         String all_users = "Users:"+num_users+":";
                         
+                        // If block that updates everyones players lists
                         if(enter_update.equals("Enter_update"))
                         {
                             for(ConnectedQuizClient clnt : this.allClients)
@@ -409,20 +368,12 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             this.state = "START_QUIZ";
                         }
                         
+                        // If block that logs a player out
                         if(enter_update.startsWith("LogOut"))
                         {
                             String [] token = enter_update.split(":");
                             String whoLogsOut = token[1].trim();
-                            /*
-                            for(int i = 0 ; i < this.allClients.size() ; i++)
-                            {
-                                if(this.allClients.get(i).username.equals(whoLogsOut))
-                                {
-                                    this.allClients.remove(i);
-                                    break;
-                                }
-                            }
-                            */
+                            
                             Iterator<ConnectedQuizClient> it = this.allClients.iterator();
                             while (it.hasNext()) 
                             {
@@ -455,11 +406,11 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                         }
                         break;
                         
-                    // State that loads the question set and prepares for a start of a quiz - in this state admins can add/remove players 
+                    // STATE - HERE YOU SET/REQUEST SET DEPENDING ON WHAT ROLE YOU HAVE    
                     case "START_QUIZ" :
-                        System.out.println("Im in state START_QUIZ,just before reading a new set!");
-                        String start_flag = br.readLine(); 
-                        System.out.println(start_flag);
+                        String start_flag = br.readLine();
+                        
+                        // If block that fetches a set
                         if(start_flag.startsWith("RequestSet"))
                         {
                             String [] tokens = start_flag.split(":");
@@ -485,9 +436,10 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             else
                             {
                                 this.pw.println("NoSet");
-                            }
-                            
+                            }  
                         }
+                        
+                        // If that requests a leaderboard
                         if(start_flag.startsWith("Leaderboard"))
                         {
                             Collections.sort(allClients);
@@ -495,9 +447,10 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             System.out.println(allClients);
                             this.pw.println("NewLeaderboard-"+size+"-"+allClients);
                         } 
+                        
+                        // If that loads a set - admin
                         if(start_flag.startsWith("Start:"))
                         {
-                            
                             String [] active_set_fetch = start_flag.split(":");
                             String active_set = active_set_fetch[1];
                             System.out.println(active_set);
@@ -521,6 +474,8 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             }
                             System.out.println("Question number: " + this.question_number);
                         }
+                        
+                        // If that allows admin to add a player
                         if(start_flag.startsWith("AddPlayer"))
                         {
                             String [] new_player_token = start_flag.split(",");
@@ -548,7 +503,9 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                                     String [] addToken = decryptedText.split("\n");
                                     for(int i = 0 ; i < addToken.length ; i++)
                                     {
-                                        if(new_player_info.equals(addToken[i]))
+                                        String [] tokenSamePlayer = addToken[i].split(":");
+                                        String usernameCheck = tokenSamePlayer[0];
+                                        if(token[0].equals(usernameCheck))
                                         {
                                             addOK = false;
                                             System.out.println("Found the same player, cant add him again");
@@ -584,61 +541,61 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             }
                         }     
                          
-                        // Remove a player
+                        // If that allows admin to remove a player
                         if(start_flag.startsWith("RemovePlayer"))
                         {
                             String [] new_player_token = start_flag.split(",");
-                            String new_player_info = new_player_token[1];          
-                            String usernameRegex = "^[a-zA-Z]{1,}[A-Za-z0-9]*$";                        
-                            Pattern patternLogin = Pattern.compile(usernameRegex);      
-                            Matcher matcherLogin = patternLogin.matcher(new_player_info);                            
-                            if(matcherLogin.find())
-                            {
-                                String newPlayerList = null;
-                                Path path = Paths.get("./users.txt");
-                                byte[] encMessage = Files.readAllBytes(path);
-                                String decryptedText = do_AESDecryption(encMessage, this.key, this.init_vector);   
-                                String [] userToken = decryptedText.split("\n");
-                                for(int i = 0 ; i < userToken.length ; i++)
+                            if(new_player_token.length == 2)
+                            {    
+                                String new_player_info = new_player_token[1];          
+                                String usernameRegex = "^[a-zA-Z]{1,}[A-Za-z0-9]*$";                        
+                                Pattern patternLogin = Pattern.compile(usernameRegex);      
+                                Matcher matcherLogin = patternLogin.matcher(new_player_info);                            
+                                if(matcherLogin.find())
                                 {
-                                    String [] currentToken = userToken[i].split(":");
-                                    String currentUsername = currentToken[0];
-                                    if(!new_player_info.equals(currentUsername))
+                                    String newPlayerList = null;
+                                    Path path = Paths.get("./users.txt");
+                                    byte[] encMessage = Files.readAllBytes(path);
+                                    String decryptedText = do_AESDecryption(encMessage, this.key, this.init_vector);   
+                                    String [] userToken = decryptedText.split("\n");
+                                    for(int i = 0 ; i < userToken.length ; i++)
                                     {
-                                        newPlayerList+="\n"+userToken[i];
+                                        String [] currentToken = userToken[i].split(":");
+                                        String currentUsername = currentToken[0];
+                                        if(!new_player_info.equals(currentUsername))
+                                        {
+                                            newPlayerList+="\n"+userToken[i];
+                                        }
+                                        else
+                                        {
+                                            System.out.println("Found the player to remove.");
+                                            this.pw.println("RemoveOk");
+                                        }
                                     }
-                                    else
-                                    {
-                                        System.out.println("Found the player to remove.");
-                                        this.pw.println("RemoveOk");
-                                    }
+
+                                    encMessage = do_AESEncryption(newPlayerList,this.key,this.init_vector);
+                                    Files.write(path,encMessage);
+
                                 }
-                                
-                                encMessage = do_AESEncryption(newPlayerList,this.key,this.init_vector);
-                                Files.write(path,encMessage);
-                            
+                                else
+                                {
+                                    System.out.println("Invalide remove format!");
+                                    this.pw.println("xRemove");
+                                }
                             }
                             else
                             {
-                                System.out.println("Invalide remove format!");
-                                this.pw.println("xRemove");
+                                System.out.println("Cant leave this field blank!");
+                                this.pw.println("404Remove");
                             }
                         }
                         
+                        // If that logs out a player from this state
                         if(start_flag.startsWith("LogOut"))
                         {
                             String [] token = start_flag.split(":");
                             String whoLogsOut = token[1].trim();
-                            /*
-                            for(int i = 0 ; i < this.allClients.size() ; i++)
-                            {
-                                if(this.allClients.get(i).username.equals(whoLogsOut))
-                                {
-                                    this.allClients.remove(i);
-                                    break;
-                                }
-                            }
-                            */
+       
                             Iterator<ConnectedQuizClient> it = this.allClients.iterator();
                             while (it.hasNext()) 
                             {
@@ -671,12 +628,13 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                         }
                     break;
                                  
-                    
+                    // STATE - GAME HAS STARTED
                     case "IN_GAME" : 
-                        //System.out.println("Im in IN_GAME state");
-                        //System.out.println("Question number: " + this.question_number);
+
                         String new_question = br.readLine();
-                        if(new_question.startsWith("Start:"))   // This is added 
+                        
+                        // If that prepares a set 
+                        if(new_question.startsWith("Start:")) 
                         {                     
                             String [] active_set_fetch = new_question.split(":");
                             String active_set = active_set_fetch[1];
@@ -704,6 +662,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             System.out.println("Question number: " + this.question_number);
                         }
                          
+                        // If that covers a scenario upon receieving a new question
                         if(new_question.startsWith("NewQuestion"))
                         {
                             String current_question = questions.get(question_number).getText();
@@ -735,6 +694,8 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             }
                             
                         }
+                        
+                        // End of set scenario
                         if(this.endOfSet == true)
                         {
                             this.pw.println("EndOfSet");
@@ -744,12 +705,13 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             this.questions.clear();
                             this.endOfSet = false;
                         }
+                        
+                        // If that check the answer validity
                         if(new_question.startsWith("NewAnswer"))
                         {
                             String [] answer_token = new_question.split(":");
                             String question_numRcvd_Sp = answer_token[1].trim();
                             int question_numRcvd = Integer.parseInt(question_numRcvd_Sp);
-                            //System.out.println(question_numRcvd);
                             String answer_text = answer_token[2];
                             String real_answer = this.questions.get(question_numRcvd-1).getAnswerD().getAnswerText();
                             if(real_answer.substring(real_answer.indexOf(')')+2).equals(answer_text))
@@ -765,6 +727,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             }
                         }
                         
+                        // If that activates swap question help
                         if(new_question.startsWith("SwapQ"))
                         {
                             String swap_question_text = this.questions.get(10).getText();
@@ -775,6 +738,8 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             this.pw.println("SwapQ:"+swap_question_text+swap_A+":"+swap_B+":"+swap_C+":"+swap_D);
                             this.questions_answered++;
                         }
+                        
+                        // If that activates a 50/50 help
                         if(new_question.startsWith("5050"))
                         {
                             String[]token_50 = new_question.split(":");
@@ -810,6 +775,8 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                                 cnt = 0;
                             }                        
                         }
+                        
+                        // If that activates a friend help
                         if(new_question.startsWith("FriendHelp"))
                         {
                             String [] friend_token = new_question.split(":");
@@ -826,6 +793,7 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             }
                         }
                         
+                        // If that covers a friend response scenario
                         if(new_question.startsWith("Response"))
                         {
                             String[]responseToken = new_question.split(":");
@@ -841,20 +809,12 @@ public class ConnectedQuizClient implements Runnable , Comparable<ConnectedQuizC
                             }
                         }
                         
+                        // If that logs the player out
                         if(new_question.startsWith("LogOut"))
                         {
                             String [] token = new_question.split(":");
                             String whoLogsOut = token[1].trim();
-                            /*
-                            for(int i = 0 ; i < this.allClients.size() ; i++)
-                            {
-                                if(this.allClients.get(i).username.equals(whoLogsOut))
-                                {
-                                    this.allClients.remove(i);
-                                    break;
-                                }
-                            }
-                            */
+
                             Iterator<ConnectedQuizClient> it = this.allClients.iterator();
                             while (it.hasNext()) 
                             {

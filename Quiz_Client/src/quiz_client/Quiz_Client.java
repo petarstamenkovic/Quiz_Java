@@ -63,7 +63,6 @@ public class Quiz_Client extends javax.swing.JFrame {
         this.pw = pw;
     }
 
-
     public JComboBox<String> getAllPlayers() {
         return allPlayers;
     }
@@ -230,6 +229,7 @@ public class Quiz_Client extends javax.swing.JFrame {
         requestSetButton = new javax.swing.JButton();
         logOutButton = new javax.swing.JButton();
         roleBox = new javax.swing.JComboBox<>();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -440,6 +440,13 @@ public class Quiz_Client extends javax.swing.JFrame {
             }
         });
 
+        jButton1.setText("Login spec");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -484,7 +491,10 @@ public class Quiz_Client extends javax.swing.JFrame {
                                 .addComponent(startButton, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
                                 .addComponent(requestSetButton))
-                            .addComponent(connectButton))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(connectButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jButton1)))))
                 .addGap(73, 73, 73)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -596,7 +606,9 @@ public class Quiz_Client extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(connectButton)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(connectButton)
+                            .addComponent(jButton1))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -620,14 +632,14 @@ public class Quiz_Client extends javax.swing.JFrame {
 
 
 
-    // Try to remove update players by somehow automaticly updating player list in this function
+    // This button checks if the all login requirements are satisfies
     private void checkButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkButtonActionPerformed
          String login_info = this.getLoginArea().getText();
          String role_info = this.getRoleBox().getSelectedItem().toString();
-         this.pw.println(login_info + ":" + role_info);
-     
+         this.pw.println(login_info + ":" + role_info);   
     }//GEN-LAST:event_checkButtonActionPerformed
 
+    // Button for 50/50 help
     private void help5050ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_help5050ActionPerformed
         try {
             String currentQuestion = this.questionArea.getText(0,2);
@@ -654,6 +666,7 @@ public class Quiz_Client extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_questionSetItemStateChanged
 
+    // Button to enter a game room - enter the list of all players
     private void enterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterButtonActionPerformed
        this.pw.println("Enter_update");
        this.enterButton.setEnabled(false);
@@ -661,6 +674,7 @@ public class Quiz_Client extends javax.swing.JFrame {
        this.startButton.setEnabled(true);
     }//GEN-LAST:event_enterButtonActionPerformed
 
+    // Button that connects a client to the server and creates a separate thread for him
     private void connectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectButtonActionPerformed
         try {
             this.socket = new Socket("127.0.0.1", 6001);
@@ -675,7 +689,7 @@ public class Quiz_Client extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_connectButtonActionPerformed
 
-    // Fetch the set of questions and begin
+    // Fetch the set of questions and begin - This is for admin
     private void startButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startButtonActionPerformed
         String active_set = (String) this.questionSet.getSelectedItem();
         this.activeSetLabel.setText(active_set);
@@ -686,6 +700,7 @@ public class Quiz_Client extends javax.swing.JFrame {
         
     }//GEN-LAST:event_startButtonActionPerformed
 
+    // Button that fetches a next question from the set, when button is enabled you can use your helps
     private void questionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_questionButtonActionPerformed
         this.pw.println("NewQuestion");
         this.questionButton.setEnabled(false);
@@ -695,20 +710,20 @@ public class Quiz_Client extends javax.swing.JFrame {
         this.helpSwap.setEnabled(true);
     }//GEN-LAST:event_questionButtonActionPerformed
 
+    // Button to add a player in the encrypted list
     private void addPlayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPlayerActionPerformed
         String addPlayer = this.getAddRemovePlayerArea().getText();
-        String playerRole = this.getRoleBox().getSelectedItem().toString();
-        
+        String playerRole = this.getRoleBox().getSelectedItem().toString();        
         this.pw.println("AddPlayer"+","+addPlayer+":"+playerRole);
     }//GEN-LAST:event_addPlayerActionPerformed
 
+    // Button that removes a player from the encrypted list - This requires only username
     private void removePlayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removePlayerActionPerformed
          String removePlayer = this.getAddRemovePlayerArea().getText();
-         //String playerRole = this.getRoleBox().getSelectedItem().toString();
-         
          this.pw.println("RemovePlayer"+","+removePlayer);
     }//GEN-LAST:event_removePlayerActionPerformed
 
+    // Button that manipulates the answering mechanism with radio buttons, fetches the text from the selected one
     private void submintAnswerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_submintAnswerButtonActionPerformed
         ButtonModel selectedRadioButtonModel = this.buttonGroup1.getSelection();
         this.help5050.setEnabled(false);
@@ -748,12 +763,14 @@ public class Quiz_Client extends javax.swing.JFrame {
         
     }//GEN-LAST:event_submintAnswerButtonActionPerformed
 
+    // Button that activated the swap question help
     private void helpSwapActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpSwapActionPerformed
         this.pw.println("SwapQ");
         this.questionButton.setEnabled(false);
         this.helpSwap.setVisible(false);
     }//GEN-LAST:event_helpSwapActionPerformed
 
+    // Button that activated the friend help and sends the question to a player selected in a combo box
     private void helpFriendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpFriendActionPerformed
         String sendToWho = this.allPlayers.getSelectedItem().toString();
         String whoSendsInfo = this.loginArea.getText();
@@ -772,6 +789,7 @@ public class Quiz_Client extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_helpFriendActionPerformed
 
+    // Button that sends a reply to a requeted help
     private void helpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpButtonActionPerformed
         String frndResponse = this.helpArea.getText();
         String helpInfo = this.getLeaderboardArea().getText();
@@ -785,6 +803,7 @@ public class Quiz_Client extends javax.swing.JFrame {
         this.helpArea.setEnabled(false);
     }//GEN-LAST:event_helpButtonActionPerformed
 
+    // Button that request a set of questions - contestant option
     private void requestSetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_requestSetButtonActionPerformed
         String activeSet = this.activeSetLabel.getText();
         this.pw.println("RequestSet:" + activeSet);
@@ -792,6 +811,7 @@ public class Quiz_Client extends javax.swing.JFrame {
         this.leaderboardButton.setEnabled(true);
     }//GEN-LAST:event_requestSetButtonActionPerformed
 
+    // Button that logs the player out and stores his data
     private void logOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logOutButtonActionPerformed
         String logOutInfo = this.loginArea.getText();
         String [] logOutToken = logOutInfo.split(":");
@@ -802,6 +822,10 @@ public class Quiz_Client extends javax.swing.JFrame {
     private void roleBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_roleBoxActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_roleBoxActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        JOptionPane.showMessageDialog(null, "Welcome!\nUsername cant start with a number and can only have letters.\nPassword has to be at least 6 chars long and has to have at least one number,one Uppercase,one lowercase letter and one speical char!\nValid : Petar:123ABC@d\nInvalid:2Petar:AAaAA", "Login Info", JOptionPane.PLAIN_MESSAGE);
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -857,6 +881,7 @@ public class Quiz_Client extends javax.swing.JFrame {
     private javax.swing.JButton helpButton;
     private javax.swing.JButton helpFriend;
     private javax.swing.JButton helpSwap;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

@@ -48,7 +48,6 @@ public class Quiz_Server {
             System.out.println("Waiting for new clients...");
             client = this.ssocket.accept();
             
-            //SecretKey symmetricKey = createAESKey();
             System.out.println("Key is : " + symmetricKey);
             byte[] initializationVector = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};
             
@@ -66,6 +65,7 @@ public class Quiz_Server {
         }
     }
 
+    // Method that creates a same key every time we start the server - fixed seed
     public static SecretKey createAESKey() throws Exception {
         SecureRandom securerandom = new SecureRandom();
         String seed = "RSZEOS2024";
@@ -76,6 +76,7 @@ public class Quiz_Server {
         return key;
     }
     
+    // This function is not neccesary since we use a fixed initialization vector
     public static byte[] createInitializationVector()
     {
         byte[] initializationVector = new byte[16];
@@ -84,6 +85,7 @@ public class Quiz_Server {
         return initializationVector;
     }
 
+    // Method that does the encryption
     public static byte[] do_AESEncryption(String plainText, SecretKey secretKey, byte[] initializationVector) throws Exception{
         Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
         IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
@@ -91,6 +93,7 @@ public class Quiz_Server {
         return cipher.doFinal(plainText.getBytes());
     }
 
+    // Method that does the decryption
     public static String do_AESDecryption(byte[] cipherText, SecretKey secretKey, byte[] initializationVector) throws Exception{
         Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM); 
         IvParameterSpec ivParameterSpec = new IvParameterSpec(initializationVector);
@@ -99,6 +102,7 @@ public class Quiz_Server {
         return new String(result);
     }
     
+    // Constructor
     public Quiz_Server(int port) throws IOException, Exception
     {
         this.clients = new ArrayList<>();
@@ -107,6 +111,7 @@ public class Quiz_Server {
         this.symmetricKey = createAESKey();
     }
  
+    // Method that loads the initital admin - encryption required
     public void LoadInitialAdmin() throws FileNotFoundException, IOException, Exception
     {
         byte[] init_vec = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16};

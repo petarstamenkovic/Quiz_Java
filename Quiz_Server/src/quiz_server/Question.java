@@ -1,7 +1,5 @@
 package quiz_server;
 
-
-
 public class Question {
     private String text;
     private Answer answerA;
